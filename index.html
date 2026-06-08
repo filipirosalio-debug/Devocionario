@@ -1,2108 +1,597 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt-BR" data-theme="light">
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
-<title>Devocionário</title>
+<title>Devocion&#225;rio</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400;1,600&display=swap" rel="stylesheet">
-<!-- jsPDF for PDF export -->
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;0,900;1,400&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <style>
-/* ═══════════════════════════════════════════
-   DESIGN TOKENS
-═══════════════════════════════════════════ */
-:root {
-  --ff: 'Playfair Display', Georgia, serif;
-  --gold:       #B8975A;
-  --gold-lt:    #D4B483;
-  --gold-dk:    #8A6E3A;
-  --ink:        #16140F;
-  --ink2:       #2C2820;
-  --ink3:       #4A4438;
-  --muted:      #7A7060;
-  --border:     #DDD5C4;
-  --bg:         #F7F4EE;
-  --surface:    #FDFAF4;
-  --surface2:   #F2EDE2;
-  --white:      #FFFEFB;
-  --danger:     #8B3A3A;
-  --success:    #3A6B4A;
-  --shadow-sm:  0 1px 4px rgba(22,20,15,.08);
-  --shadow-md:  0 4px 20px rgba(22,20,15,.10);
-  --shadow-lg:  0 12px 48px rgba(22,20,15,.14);
-  --radius:     10px;
-  --radius-sm:  6px;
-  --transition: .22s cubic-bezier(.4,0,.2,1);
+:root{
+  --ff:'Playfair Display',Georgia,serif;
+  --gold:#B8975A;--gold-lt:#D4B483;--gold-dk:#8A6E3A;
+  --hdr:#16140F;
+  --bg:#F7F4EE;--surface:#FDFAF4;--surf2:#F0EAD8;--white:#FFFEFB;
+  --border:#DDD5C4;--ink:#16140F;--ink2:#2C2820;--ink3:#4A4438;--muted:#7A7060;
+  --sh:#2C2820;--st:#D4B483;--ss:rgba(212,180,131,.5);
+  --cb:#FFFEFB;--cbr:#DDD5C4;
+  --danger:#8B3A3A;--ok:#3A6B4A;
+  --s1:0 1px 4px rgba(22,20,15,.08);--s2:0 4px 20px rgba(22,20,15,.10);--s3:0 12px 48px rgba(22,20,15,.14);
+  --r:10px;--rs:6px;--tr:.22s cubic-bezier(.4,0,.2,1);
+}
+[data-theme="dark"]{
+  --bg:#0F0D09;--surface:#1A1710;--surf2:#22201A;--white:#1E1C16;
+  --border:#3A3628;--ink:#F0EAD8;--ink2:#D8D0BC;--ink3:#A89E88;--muted:#6A6050;
+  --sh:#1A1710;--st:#D4B483;--ss:rgba(212,180,131,.38);
+  --cb:#1E1C16;--cbr:#3A3628;
+  --s1:0 1px 4px rgba(0,0,0,.3);--s2:0 4px 20px rgba(0,0,0,.4);--s3:0 12px 48px rgba(0,0,0,.5);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth;-webkit-text-size-adjust:100%}
+body{font-family:var(--ff);background:var(--bg);color:var(--ink);min-height:100vh;font-size:15px;line-height:1.65;-webkit-font-smoothing:antialiased;transition:background .3s,color .3s}
+input,textarea,button,select{font-family:var(--ff)}
+button{cursor:pointer;border:none;background:none}
+textarea{resize:vertical}
+img{display:block;max-width:100%}
+::-webkit-scrollbar{width:5px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:99px}
+
+/* SHELL */
+.shell{display:flex;flex-direction:column;min-height:100vh}
+
+/* HEADER */
+.hdr{background:var(--hdr);position:sticky;top:0;z-index:90;box-shadow:var(--s2)}
+.hdr-brand{display:flex;flex-direction:column;align-items:center;padding:18px 20px 12px;border-bottom:1px solid rgba(255,255,255,.06)}
+.hdr-logo{font-family:var(--ff);font-size:clamp(2rem,6vw,3rem);font-weight:900;letter-spacing:.06em;text-transform:uppercase;color:var(--gold-lt);line-height:1}
+.hdr-tag{font-family:var(--ff);font-size:clamp(.64rem,2vw,.78rem);font-weight:400;color:var(--gold);letter-spacing:.08em;opacity:.82;margin-top:5px;text-align:center}
+.hdr-div{width:48px;height:1px;background:linear-gradient(90deg,transparent,var(--gold),transparent);margin-top:10px}
+.hdr-bar{max-width:900px;margin:0 auto;width:100%;padding:10px 20px;display:flex;align-items:center;justify-content:space-between;gap:10px}
+.upill{display:flex;align-items:center;gap:9px;cursor:pointer;padding:4px 10px 4px 4px;border-radius:50px;border:1px solid rgba(255,255,255,.1);transition:var(--tr)}
+.upill:hover{border-color:var(--gold-dk);background:rgba(255,255,255,.04)}
+.uav{width:32px;height:32px;border-radius:50%;background:var(--ink2);border:2px solid var(--gold-dk);overflow:hidden;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.uav img{width:100%;height:100%;object-fit:cover}
+.uname{font-family:var(--ff);font-size:.78rem;font-weight:600;color:var(--gold-lt);max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.hacts{display:flex;gap:8px;align-items:center}
+.thbtn{width:36px;height:36px;border-radius:50%;border:1.5px solid rgba(255,255,255,.15);display:flex;align-items:center;justify-content:center;color:var(--gold-lt);transition:var(--tr);cursor:pointer;background:none}
+.thbtn:hover{border-color:var(--gold);color:var(--gold)}
+
+/* MAIN */
+.main{flex:1;max-width:900px;margin:0 auto;width:100%;padding:30px 20px 100px}
+.footer{text-align:center;padding:14px 20px;background:var(--hdr);font-family:var(--ff);font-size:.7rem;color:rgba(255,255,255,.25);letter-spacing:.1em}
+
+/* SCREENS */
+.scr{display:none}
+.scr.on{display:block;animation:fu .3s ease both}
+@keyframes fu{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+
+/* BUTTONS */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;padding:10px 22px;border-radius:var(--rs);font-family:var(--ff);font-size:.8rem;font-weight:600;letter-spacing:.07em;text-transform:uppercase;transition:var(--tr);white-space:nowrap}
+.btn-p{background:var(--gold);color:var(--hdr)}
+.btn-p:hover{background:var(--gold-dk);color:#fff;transform:translateY(-1px);box-shadow:0 4px 14px rgba(184,151,90,.35)}
+.btn-o{background:transparent;color:var(--gold-lt);border:1.5px solid var(--gold-dk)}
+.btn-o:hover{background:var(--gold-dk);color:#fff}
+.btn-g{background:transparent;color:var(--ink3);border:1.5px solid var(--border);font-size:.78rem;padding:8px 16px}
+.btn-g:hover{background:var(--surf2);border-color:var(--ink3)}
+.btn-d{background:transparent;color:var(--danger);border:1.5px solid #C8A0A0;font-size:.78rem;padding:8px 16px}
+.btn-d:hover{background:var(--danger);color:#fff;border-color:var(--danger)}
+.btn-sm{padding:7px 14px;font-size:.74rem}
+.btn-wa{background:#25D366;color:#fff;border:none}
+.btn-wa:hover{background:#128C7E;color:#fff;transform:translateY(-1px)}
+.ibtn{width:36px;height:36px;padding:0;display:inline-flex;align-items:center;justify-content:center;border-radius:var(--rs);color:var(--muted);border:1.5px solid var(--border);transition:var(--tr)}
+.ibtn:hover{color:var(--ink);border-color:var(--ink3);background:var(--surf2)}
+
+/* WELCOME */
+.wcard{background:var(--hdr);border-radius:var(--r);padding:22px 26px;margin-bottom:26px;display:flex;align-items:center;gap:18px;box-shadow:var(--s2);flex-wrap:wrap}
+.wavwrap{position:relative;flex-shrink:0;cursor:pointer}
+.wav{width:70px;height:70px;border-radius:50%;border:3px solid var(--gold);background:var(--ink2);overflow:hidden;display:flex;align-items:center;justify-content:center;transition:var(--tr)}
+.wav img{width:100%;height:100%;object-fit:cover}
+.wavbadge{position:absolute;bottom:0;right:0;width:20px;height:20px;border-radius:50%;background:var(--gold);border:2px solid var(--hdr);display:flex;align-items:center;justify-content:center;color:var(--hdr)}
+.wtxt{flex:1;min-width:140px}
+.wgreet{font-family:var(--ff);font-size:.82rem;color:rgba(212,180,131,.6);letter-spacing:.04em}
+.wname{font-family:var(--ff);font-size:clamp(1rem,3vw,1.4rem);font-weight:700;color:var(--gold-lt);margin:3px 0 8px}
+.spill{display:inline-flex;align-items:center;gap:6px;background:rgba(184,151,90,.14);border:1px solid var(--gold-dk);padding:4px 12px;border-radius:50px;font-family:var(--ff);font-size:.74rem;color:var(--gold-lt)}
+.snum{font-size:.95rem;font-weight:700;color:var(--gold)}
+.wcta{margin-left:auto}
+
+/* SECTION TITLE */
+.stit{font-family:var(--ff);font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.14em;color:var(--muted);margin-bottom:14px;display:flex;align-items:center;gap:12px}
+.stit::after{content:'';flex:1;height:1px;background:var(--border)}
+
+/* CARDS */
+.clist{display:flex;flex-direction:column;gap:12px}
+.dcard{background:var(--cb);border:1px solid var(--cbr);border-radius:var(--r);overflow:hidden;box-shadow:var(--s1);transition:var(--tr);cursor:pointer}
+.dcard:hover{box-shadow:var(--s2);transform:translateY(-2px);border-color:var(--gold-lt)}
+.dctop{display:flex}
+.dca{width:4px;background:linear-gradient(180deg,var(--gold),var(--gold-dk));flex-shrink:0}
+.dcb{flex:1;padding:15px 17px}
+.dch{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;margin-bottom:5px}
+.dcbi{font-family:var(--ff);font-size:1.04rem;font-weight:700;color:var(--ink)}
+.dcdt{font-size:.72rem;color:var(--muted);white-space:nowrap;padding-top:3px}
+.dcpv{font-size:.83rem;color:var(--muted);line-height:1.5;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.dtag{display:inline-block;font-size:.6rem;font-weight:700;text-transform:uppercase;letter-spacing:.1em;background:var(--gold);color:var(--hdr);padding:2px 7px;border-radius:4px;margin-left:8px;vertical-align:middle}
+.dcf{display:flex;gap:8px;padding:9px 17px 12px 21px;border-top:1px solid var(--surf2);flex-wrap:wrap}
+.empty{text-align:center;padding:60px 20px;color:var(--muted)}
+.eic{margin:0 auto 18px;width:60px;height:60px;border-radius:50%;background:var(--surf2);display:flex;align-items:center;justify-content:center}
+.empty h3{font-family:var(--ff);font-size:1.2rem;font-weight:600;color:var(--ink2);margin-bottom:8px}
+.empty p{font-size:.86rem;margin-bottom:24px}
+
+/* FORM */
+.ftop{display:flex;align-items:center;gap:12px;margin-bottom:22px;padding-bottom:16px;border-bottom:1px solid var(--border)}
+.ftop h2{font-family:var(--ff);font-size:1.4rem;font-weight:700;color:var(--ink)}
+.ftr{margin-left:auto;display:flex;gap:8px}
+.pw{background:var(--border);border-radius:99px;height:3px;margin-bottom:24px;overflow:hidden}
+.pf{height:100%;background:linear-gradient(90deg,var(--gold-dk),var(--gold));border-radius:99px;transition:width .4s ease}
+.bblk{background:var(--hdr);border-radius:var(--r);padding:20px 24px;margin-bottom:18px;display:grid;grid-template-columns:1fr auto;gap:18px;align-items:end}
+@media(max-width:480px){.bblk{grid-template-columns:1fr}}
+.blbl{display:block;font-family:var(--ff);font-size:.66rem;font-weight:700;text-transform:uppercase;letter-spacing:.14em;color:var(--gold);margin-bottom:7px}
+.binp{width:100%;background:transparent;border:none;border-bottom:1.5px solid var(--gold-dk);color:#fff;font-family:var(--ff);font-size:1.2rem;font-weight:600;padding:5px 0;outline:none;transition:border-color .2s}
+.binp:focus{border-bottom-color:var(--gold-lt)}
+.binp::placeholder{color:rgba(255,255,255,.25)}
+.dinp{background:transparent;border:none;border-bottom:1.5px solid var(--gold-dk);color:#fff;font-family:var(--ff);font-size:.84rem;outline:none;padding:3px 0;width:138px;color-scheme:dark}
+.wdots{display:flex;gap:5px;margin-top:10px}
+.wdot{width:28px;height:28px;border-radius:50%;background:rgba(255,255,255,.07);border:1.5px solid rgba(255,255,255,.12);display:flex;align-items:center;justify-content:center;font-family:var(--ff);font-size:.6rem;font-weight:700;color:rgba(255,255,255,.35);transition:var(--tr)}
+.wdot.on{background:var(--gold);border-color:var(--gold);color:var(--hdr)}
+.fsec{margin-bottom:16px}
+.scard{background:var(--cb);border:1px solid var(--cbr);border-radius:var(--r);overflow:hidden;box-shadow:var(--s1)}
+.shdr{background:var(--sh);padding:12px 18px;display:flex;align-items:center;gap:12px}
+.sic{width:30px;height:30px;border-radius:var(--rs);background:rgba(255,255,255,.07);display:flex;align-items:center;justify-content:center;flex-shrink:0;color:var(--gold)}
+.sht strong{display:block;font-family:var(--ff);font-size:.93rem;font-weight:700;color:var(--st);letter-spacing:.02em}
+.sht span{font-family:var(--ff);font-size:.74rem;color:var(--ss)}
+.sbdy{padding:17px}
+.wgrid{display:grid;grid-template-columns:1fr 1fr;gap:22px}
+@media(max-width:420px){.wgrid{grid-template-columns:1fr}}
+.wlbl{font-family:var(--ff);font-size:.67rem;font-weight:700;text-transform:uppercase;letter-spacing:.12em;color:var(--muted);margin-bottom:12px}
+.wrow{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.wdot2{width:6px;height:6px;border-radius:50%;background:var(--gold);flex-shrink:0}
+.winp{flex:1;border:none;border-bottom:1px solid var(--border);background:transparent;font-family:var(--ff);font-size:.9rem;color:var(--ink);padding:5px 0;outline:none;transition:border-color .2s}
+.winp:focus{border-bottom-color:var(--gold)}
+.fta{width:100%;min-height:145px;border:none;background:transparent;font-family:var(--ff);font-size:.95rem;color:var(--ink);outline:none;line-height:1.8;padding:0}
+.fftr{display:flex;gap:10px;align-items:center;flex-wrap:wrap;padding-top:20px;border-top:1px solid var(--border);margin-top:24px}
+.asmsg{margin-right:auto;font-family:var(--ff);font-size:.74rem;color:var(--muted);min-width:140px;transition:opacity .3s}
+
+/* VIEW */
+.vtop{display:flex;align-items:center;gap:12px;margin-bottom:22px;padding-bottom:16px;border-bottom:1px solid var(--border);flex-wrap:wrap}
+.vtop h2{font-family:var(--ff);font-size:1.4rem;font-weight:700;color:var(--ink)}
+.vtr{margin-left:auto;display:flex;gap:8px;flex-wrap:wrap}
+#parea{background:var(--cb);border:1px solid var(--cbr);border-radius:var(--r);padding:36px 42px;box-shadow:var(--s3)}
+@media(max-width:520px){#parea{padding:20px 15px}}
+.vdh{display:flex;justify-content:space-between;align-items:flex-start;padding-bottom:18px;margin-bottom:22px;border-bottom:2px solid var(--ink);gap:12px;flex-wrap:wrap}
+.vdb{font-family:var(--ff);font-size:1.35rem;font-weight:700;color:var(--ink)}
+.vdbr{font-family:var(--ff);font-size:.7rem;color:var(--muted);margin-top:3px;letter-spacing:.04em}
+.vdate{font-family:var(--ff);font-size:.8rem;color:var(--muted);text-align:right;margin-bottom:7px}
+.vwdd{display:flex;gap:5px;justify-content:flex-end}
+.vwd{width:22px;height:22px;border-radius:50%;border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-family:var(--ff);font-size:.57rem;font-weight:700;color:var(--muted)}
+.vwd.on{background:var(--hdr);border-color:var(--hdr);color:var(--gold)}
+.vsec{margin-bottom:20px}
+.vst{display:flex;align-items:baseline;gap:10px;font-family:var(--ff);font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.14em;color:var(--ink2);padding-bottom:7px;border-bottom:1px solid var(--border);margin-bottom:12px}
+.vsg{font-style:italic;font-weight:400;text-transform:none;letter-spacing:0;font-size:.78rem;color:var(--muted);margin-left:auto}
+.vwg{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.vwl{font-family:var(--ff);font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin-bottom:7px}
+.vwi{display:flex;align-items:center;gap:7px;font-family:var(--ff);font-size:.88rem;color:var(--ink2);margin-bottom:4px}
+.vtxt{font-family:var(--ff);font-size:.9rem;color:var(--ink2);line-height:1.8;white-space:pre-wrap}
+.vemp{font-family:var(--ff);font-style:italic;color:var(--muted);font-size:.84rem}
+
+/* PROFILE */
+.pfw{max-width:500px;margin:0 auto}
+.pftop{display:flex;align-items:center;gap:12px;margin-bottom:24px;padding-bottom:16px;border-bottom:1px solid var(--border)}
+.pftop h2{font-family:var(--ff);font-size:1.4rem;font-weight:700;color:var(--ink)}
+.pfava{text-align:center;margin-bottom:24px}
+.pfav{width:90px;height:90px;border-radius:50%;border:3px solid var(--gold);overflow:hidden;margin:0 auto 11px;background:var(--surf2);display:flex;align-items:center;justify-content:center;cursor:pointer;position:relative;transition:var(--tr)}
+.pfav:hover{border-color:var(--gold-dk)}
+.pfav img{width:100%;height:100%;object-fit:cover}
+.pfavo{position:absolute;inset:0;background:rgba(0,0,0,.45);display:flex;align-items:center;justify-content:center;opacity:0;border-radius:50%;transition:opacity .2s;font-family:var(--ff);font-size:.7rem;color:#fff}
+.pfav:hover .pfavo{opacity:1}
+.avhint{font-family:var(--ff);font-size:.75rem;color:var(--muted)}
+.pff{margin-bottom:16px}
+.pff label{display:block;font-family:var(--ff);font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.12em;color:var(--muted);margin-bottom:7px}
+.pff input{width:100%;border:1.5px solid var(--border);border-radius:var(--rs);background:var(--cb);font-family:var(--ff);font-size:1rem;color:var(--ink);padding:10px 14px;outline:none;transition:border-color .2s}
+.pff input:focus{border-color:var(--gold)}
+.clsec{margin-top:26px;padding-top:22px;border-top:1px solid var(--border)}
+.clsec h3{font-family:var(--ff);font-size:1rem;font-weight:700;color:var(--ink);margin-bottom:6px}
+.clsec p{font-family:var(--ff);font-size:.83rem;color:var(--muted);margin-bottom:14px;line-height:1.6}
+.co{background:var(--cb);border:1.5px solid var(--cbr);border-radius:var(--r);padding:13px 15px;margin-bottom:10px;display:flex;align-items:center;gap:13px;cursor:pointer;transition:var(--tr)}
+.co:hover{border-color:var(--gold-lt);background:var(--surface)}
+.co.sel{border-color:var(--gold);background:rgba(184,151,90,.06)}
+.coic{width:36px;height:36px;border-radius:var(--rs);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.cotxt strong{display:block;font-family:var(--ff);font-size:.88rem;font-weight:700;color:var(--ink);margin-bottom:2px}
+.cotxt span{font-family:var(--ff);font-size:.76rem;color:var(--muted)}
+.cocfg{background:var(--surf2);border:1px solid var(--border);border-radius:var(--rs);padding:14px;margin-top:6px;display:none}
+.cocfg.on{display:block;animation:fu .2s ease}
+.cocfg label{display:block;font-family:var(--ff);font-size:.66rem;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin-bottom:5px}
+.cocfg input{width:100%;border:1.5px solid var(--border);border-radius:var(--rs);background:var(--cb);font-family:var(--ff);font-size:.87rem;color:var(--ink);padding:9px 12px;outline:none;margin-bottom:10px}
+.cocfg input:focus{border-color:var(--gold)}
+.cst{margin-top:8px;font-family:var(--ff);font-size:.78rem;padding:8px 12px;border-radius:4px;display:none}
+.cst.ok{background:rgba(58,107,74,.1);color:var(--ok)}
+.cst.err{background:rgba(139,58,58,.1);color:var(--danger)}
+.sapp{margin-top:24px;padding-top:20px;border-top:1px solid var(--border)}
+.sapp h3{font-family:var(--ff);font-size:1rem;font-weight:700;color:var(--ink);margin-bottom:6px}
+.sapp p{font-family:var(--ff);font-size:.82rem;color:var(--muted);margin-bottom:14px}
+
+/* BOTTOM NAV */
+@media(max-width:660px){
+  .hdr-bar{display:none}
+  .bnav{position:fixed;bottom:0;left:0;right:0;background:var(--hdr);display:flex;border-top:1px solid rgba(255,255,255,.07);z-index:89;padding-bottom:env(safe-area-inset-bottom,0)}
+  .bnb{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:9px 8px;gap:4px;color:rgba(255,255,255,.35);font-family:var(--ff);font-size:.57rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;transition:color .2s;cursor:pointer;border:none;background:none}
+  .bnb.on,.bnb:hover{color:var(--gold)}
+  .main{padding-bottom:88px}
+}
+@media(min-width:661px){.bnav{display:none}}
+
+/* TOAST */
+.toast{position:fixed;bottom:28px;left:50%;transform:translateX(-50%) translateY(80px);background:var(--hdr);color:var(--gold-lt);padding:11px 24px;border-radius:50px;font-family:var(--ff);font-size:.83rem;border:1px solid var(--gold-dk);box-shadow:var(--s3);z-index:999;pointer-events:none;transition:transform .3s cubic-bezier(.34,1.56,.64,1),opacity .3s;opacity:0;white-space:nowrap}
+.toast.on{transform:translateX(-50%) translateY(0);opacity:1}
+
+/* MODAL */
+.mov{position:fixed;inset:0;background:rgba(15,13,9,.72);backdrop-filter:blur(5px);z-index:200;display:none;align-items:center;justify-content:center;padding:20px}
+.mov.on{display:flex}
+.modal{background:var(--cb);border-radius:var(--r);padding:28px;max-width:450px;width:100%;box-shadow:var(--s3);animation:fu .25s ease;border:1px solid var(--cbr)}
+.modal h3{font-family:var(--ff);font-size:1.2rem;font-weight:700;margin-bottom:9px;color:var(--ink)}
+.modal p{font-family:var(--ff);font-size:.85rem;color:var(--muted);margin-bottom:20px;line-height:1.65}
+.mac{display:flex;gap:10px;justify-content:flex-end;flex-wrap:wrap}
+.sbox{background:var(--surf2);border:1px solid var(--border);border-radius:var(--rs);padding:13px;font-family:var(--ff);font-size:.77rem;color:var(--ink2);white-space:pre-wrap;line-height:1.65;max-height:195px;overflow-y:auto;margin-bottom:14px}
+
+@media(max-width:480px){
+  .wcta{width:100%}.wcta .btn{width:100%;justify-content:center}
+  .vtr{width:100%}.vtr .btn{flex:1;justify-content:center}
+}
+@media print{
+  .hdr,.vtop,.footer,.bnav,.toast,.mov{display:none!important}
+  body{background:#fff}
+  #parea{box-shadow:none;border:none;padding:20px}
+  .main{padding:0}
 }
-
-/* ═══════════════════════════════════════════
-   RESET & BASE
-═══════════════════════════════════════════ */
-*,*::before,*::after { box-sizing:border-box; margin:0; padding:0; }
-html { scroll-behavior:smooth; -webkit-text-size-adjust:100%; }
-body {
-  font-family: var(--ff);
-  background: var(--bg);
-  color: var(--ink);
-  min-height: 100vh;
-  font-size: 15px;
-  line-height: 1.65;
-  -webkit-font-smoothing: antialiased;
-}
-input,textarea,button,select { font-family: var(--ff); }
-button { cursor:pointer; border:none; background:none; }
-textarea { resize:vertical; }
-img { display:block; max-width:100%; }
-a { color:inherit; text-decoration:none; }
-
-/* ═══════════════════════════════════════════
-   SCROLLBAR
-═══════════════════════════════════════════ */
-::-webkit-scrollbar { width:5px; height:5px; }
-::-webkit-scrollbar-track { background:transparent; }
-::-webkit-scrollbar-thumb { background:var(--border); border-radius:99px; }
-::-webkit-scrollbar-thumb:hover { background:var(--muted); }
-
-/* ═══════════════════════════════════════════
-   LAYOUT
-═══════════════════════════════════════════ */
-.app-shell {
-  display: flex;
-  flex-direction: column;
-  min-height: 100vh;
-}
-
-/* ── HEADER ── */
-.app-header {
-  background: var(--ink);
-  position: sticky;
-  top: 0;
-  z-index: 90;
-  box-shadow: var(--shadow-md);
-}
-
-.header-inner {
-  max-width: 860px;
-  margin: 0 auto;
-  padding: 0 20px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding-top: 22px;
-  padding-bottom: 18px;
-  gap: 3px;
-}
-
-.header-logo {
-  font-family: var(--ff);
-  font-size: clamp(1.6rem, 5vw, 2.2rem);
-  font-weight: 700;
-  letter-spacing: .04em;
-  color: var(--gold-lt);
-  line-height: 1;
-}
-
-.header-tagline {
-  font-family: var(--ff);
-  font-size: clamp(.65rem, 2vw, .78rem);
-  font-weight: 400;
-  font-style: italic;
-  color: var(--gold);
-  letter-spacing: .06em;
-  opacity: .82;
-  text-align: center;
-}
-
-.header-divider {
-  width: 48px;
-  height: 1px;
-  background: linear-gradient(90deg, transparent, var(--gold), transparent);
-  margin-top: 10px;
-}
-
-/* Floating action header row */
-.header-actions-bar {
-  max-width: 860px;
-  margin: 0 auto;
-  padding: 10px 20px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  border-top: 1px solid rgba(255,255,255,.07);
-}
-
-.user-pill {
-  display: flex;
-  align-items: center;
-  gap: 9px;
-  cursor: pointer;
-}
-
-.user-avatar {
-  width: 34px;
-  height: 34px;
-  border-radius: 50%;
-  background: var(--ink2);
-  border: 2px solid var(--gold-dk);
-  overflow: hidden;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-}
-
-.user-avatar img { width:100%; height:100%; object-fit:cover; }
-
-.user-avatar svg { color: var(--gold); }
-
-.user-name {
-  font-family: var(--ff);
-  font-size: .8rem;
-  font-weight: 500;
-  color: var(--gold-lt);
-  letter-spacing: .02em;
-}
-
-/* ── MAIN ── */
-.app-main {
-  flex: 1;
-  max-width: 860px;
-  margin: 0 auto;
-  width: 100%;
-  padding: 32px 20px 100px;
-}
-
-/* ── FOOTER ── */
-.app-footer {
-  text-align: center;
-  padding: 18px 20px;
-  background: var(--ink);
-  font-family: var(--ff);
-  font-size: .72rem;
-  font-style: italic;
-  color: rgba(255,255,255,.3);
-  letter-spacing: .08em;
-}
-
-/* ═══════════════════════════════════════════
-   SCREENS
-═══════════════════════════════════════════ */
-.screen { display:none; }
-.screen.active { display:block; animation: fadeUp .32s ease both; }
-
-@keyframes fadeUp {
-  from { opacity:0; transform:translateY(12px); }
-  to   { opacity:1; transform:translateY(0); }
-}
-
-/* ═══════════════════════════════════════════
-   BUTTONS
-═══════════════════════════════════════════ */
-.btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 7px;
-  padding: 10px 22px;
-  border-radius: var(--radius-sm);
-  font-family: var(--ff);
-  font-size: .8rem;
-  font-weight: 600;
-  letter-spacing: .07em;
-  text-transform: uppercase;
-  transition: var(--transition);
-  white-space: nowrap;
-}
-
-.btn-primary {
-  background: var(--gold);
-  color: var(--ink);
-}
-.btn-primary:hover { background: var(--gold-dk); color: #fff; transform:translateY(-1px); box-shadow: 0 4px 16px rgba(184,151,90,.35); }
-
-.btn-outline {
-  background: transparent;
-  color: var(--gold-lt);
-  border: 1.5px solid var(--gold-dk);
-}
-.btn-outline:hover { background: var(--gold-dk); color: #fff; }
-
-.btn-ghost {
-  background: transparent;
-  color: var(--ink3);
-  border: 1.5px solid var(--border);
-  font-size: .78rem;
-  padding: 8px 16px;
-}
-.btn-ghost:hover { background: var(--surface2); border-color: var(--ink3); }
-
-.btn-danger {
-  background: transparent;
-  color: var(--danger);
-  border: 1.5px solid #C8A0A0;
-  font-size: .78rem;
-  padding: 8px 16px;
-}
-.btn-danger:hover { background: var(--danger); color: #fff; border-color: var(--danger); }
-
-.btn-sm { padding: 7px 14px; font-size: .74rem; }
-.btn-icon-only {
-  width: 36px; height: 36px; padding: 0;
-  display:inline-flex; align-items:center; justify-content:center;
-  border-radius: var(--radius-sm);
-  color: var(--muted);
-  border: 1.5px solid var(--border);
-  transition: var(--transition);
-}
-.btn-icon-only:hover { color:var(--ink); border-color:var(--ink3); background:var(--surface2); }
-
-/* ═══════════════════════════════════════════
-   HOME SCREEN
-═══════════════════════════════════════════ */
-.home-hero {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  flex-wrap: wrap;
-  gap: 16px;
-  margin-bottom: 36px;
-  padding-bottom: 28px;
-  border-bottom: 1px solid var(--border);
-}
-
-.home-hero-left h1 {
-  font-family: var(--ff);
-  font-size: clamp(1.5rem, 4vw, 2.2rem);
-  font-weight: 700;
-  color: var(--ink);
-  letter-spacing: .02em;
-  line-height: 1.2;
-  margin-bottom: 6px;
-}
-
-.home-hero-left p {
-  font-size: .86rem;
-  color: var(--muted);
-  font-style: italic;
-  font-weight: 400;
-}
-
-.streak-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  background: var(--ink);
-  color: var(--gold-lt);
-  padding: 10px 20px;
-  border-radius: 50px;
-  font-family: var(--ff);
-  font-size: .82rem;
-  font-weight: 500;
-  letter-spacing: .05em;
-  box-shadow: var(--shadow-sm);
-}
-
-.streak-badge .streak-num {
-  font-size: 1.1rem;
-  font-weight: 700;
-  color: var(--gold);
-}
-
-/* Section title */
-.s-title {
-  font-family: var(--ff);
-  font-size: .72rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: .14em;
-  color: var(--muted);
-  margin-bottom: 16px;
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-.s-title::after { content:''; flex:1; height:1px; background:var(--border); }
-
-/* Card list */
-.card-list { display: flex; flex-direction: column; gap: 12px; }
-
-.dev-card {
-  background: var(--white);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  padding: 0;
-  overflow: hidden;
-  box-shadow: var(--shadow-sm);
-  transition: var(--transition);
-  cursor: pointer;
-}
-.dev-card:hover { box-shadow: var(--shadow-md); transform: translateY(-2px); border-color: var(--gold-lt); }
-
-.dev-card-top {
-  display: flex;
-  align-items: stretch;
-  gap: 0;
-}
-
-.dev-card-accent {
-  width: 4px;
-  background: linear-gradient(180deg, var(--gold), var(--gold-dk));
-  flex-shrink: 0;
-}
-
-.dev-card-body { flex:1; padding: 16px 18px; }
-
-.dev-card-head {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  gap: 10px;
-  margin-bottom: 6px;
-}
-
-.dev-card-bible {
-  font-family: var(--ff);
-  font-size: 1.05rem;
-  font-weight: 700;
-  color: var(--ink);
-  letter-spacing: .01em;
-}
-
-.dev-card-date {
-  font-size: .72rem;
-  color: var(--muted);
-  font-weight: 400;
-  font-style: italic;
-  white-space: nowrap;
-  padding-top: 3px;
-}
-
-.dev-card-preview {
-  font-size: .84rem;
-  color: var(--muted);
-  font-style: italic;
-  font-weight: 400;
-  line-height: 1.55;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-}
-
-.draft-tag {
-  display: inline-block;
-  font-size: .64rem;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: .1em;
-  background: var(--gold);
-  color: var(--ink);
-  padding: 2px 8px;
-  border-radius: 4px;
-  margin-left: 8px;
-  vertical-align: middle;
-  font-style: normal;
-}
-
-.dev-card-footer {
-  display: flex;
-  gap: 8px;
-  padding: 10px 18px 14px 22px;
-  border-top: 1px solid var(--surface2);
-  flex-wrap: wrap;
-}
-
-.empty-state {
-  text-align: center;
-  padding: 72px 20px;
-  color: var(--muted);
-}
-.empty-icon {
-  margin: 0 auto 20px;
-  width: 64px;
-  height: 64px;
-  border-radius: 50%;
-  background: var(--surface2);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-.empty-state h3 {
-  font-family: var(--ff);
-  font-size: 1.3rem;
-  font-weight: 600;
-  color: var(--ink2);
-  margin-bottom: 8px;
-}
-.empty-state p {
-  font-size: .88rem;
-  font-style: italic;
-  margin-bottom: 28px;
-}
-
-/* ═══════════════════════════════════════════
-   FORM SCREEN
-═══════════════════════════════════════════ */
-.form-topbar {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  margin-bottom: 28px;
-  padding-bottom: 18px;
-  border-bottom: 1px solid var(--border);
-}
-.form-topbar h2 {
-  font-family: var(--ff);
-  font-size: 1.5rem;
-  font-weight: 700;
-  letter-spacing: .02em;
-  color: var(--ink);
-}
-.form-topbar-actions { margin-left: auto; display:flex; gap:8px; }
-
-/* Progress */
-.progress-wrap {
-  background: var(--border);
-  border-radius: 99px;
-  height: 3px;
-  margin-bottom: 30px;
-  overflow: hidden;
-}
-.progress-fill {
-  height: 100%;
-  background: linear-gradient(90deg, var(--gold-dk), var(--gold));
-  border-radius: 99px;
-  transition: width .4s ease;
-}
-
-/* Bible + Date block */
-.bible-block {
-  background: var(--ink);
-  border-radius: var(--radius);
-  padding: 24px 28px;
-  margin-bottom: 24px;
-  display: grid;
-  grid-template-columns: 1fr auto;
-  gap: 20px;
-  align-items: end;
-}
-
-@media(max-width:520px){
-  .bible-block { grid-template-columns:1fr; }
-}
-
-.bible-field label {
-  display: block;
-  font-family: var(--ff);
-  font-size: .68rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: .14em;
-  color: var(--gold);
-  margin-bottom: 8px;
-}
-.bible-field input {
-  width: 100%;
-  background: transparent;
-  border: none;
-  border-bottom: 1.5px solid var(--gold-dk);
-  color: #fff;
-  font-family: var(--ff);
-  font-size: 1.25rem;
-  font-weight: 600;
-  padding: 6px 0;
-  outline: none;
-  transition: border-color .2s;
-}
-.bible-field input:focus { border-bottom-color: var(--gold-lt); }
-.bible-field input::placeholder { color:rgba(255,255,255,.25); }
-
-.weekday-col label {
-  display: block;
-  font-family: var(--ff);
-  font-size: .68rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: .14em;
-  color: var(--gold);
-  margin-bottom: 10px;
-  text-align: center;
-}
-.weekday-dots { display:flex; gap:5px; }
-.wd-dot {
-  width: 30px; height: 30px;
-  border-radius: 50%;
-  background: rgba(255,255,255,.07);
-  border: 1.5px solid rgba(255,255,255,.12);
-  display:flex; align-items:center; justify-content:center;
-  font-family: var(--ff);
-  font-size: .62rem;
-  font-weight: 600;
-  color: rgba(255,255,255,.35);
-  text-transform: uppercase;
-  transition: var(--transition);
-}
-.wd-dot.active {
-  background: var(--gold);
-  border-color: var(--gold);
-  color: var(--ink);
-}
-
-/* Form sections */
-.form-section { margin-bottom: 20px; }
-
-.sec-card {
-  background: var(--white);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  overflow: hidden;
-  box-shadow: var(--shadow-sm);
-}
-
-.sec-header {
-  background: var(--ink2);
-  padding: 14px 20px;
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.sec-header-icon {
-  width: 32px; height: 32px;
-  border-radius: var(--radius-sm);
-  background: rgba(255,255,255,.08);
-  display:flex; align-items:center; justify-content:center;
-  flex-shrink: 0;
-  color: var(--gold);
-}
-
-.sec-header-text { flex:1; }
-.sec-header-text strong {
-  display:block;
-  font-family: var(--ff);
-  font-size: .95rem;
-  font-weight: 700;
-  color: var(--gold-lt);
-  letter-spacing: .03em;
-}
-.sec-header-text span {
-  font-family: var(--ff);
-  font-size: .75rem;
-  font-weight: 400;
-  font-style: italic;
-  color: rgba(255,255,255,.4);
-}
-
-.sec-body { padding: 20px; }
-
-/* Words */
-.words-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 24px;
-}
-@media(max-width:440px){ .words-grid { grid-template-columns:1fr; } }
-
-.words-col-label {
-  font-family: var(--ff);
-  font-size: .7rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: .12em;
-  color: var(--muted);
-  margin-bottom: 12px;
-}
-
-.word-row {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin-bottom: 10px;
-}
-.word-dot {
-  width: 6px; height: 6px;
-  border-radius: 50%;
-  background: var(--gold);
-  flex-shrink: 0;
-}
-.word-input {
-  flex: 1;
-  border: none;
-  border-bottom: 1px solid var(--border);
-  background: transparent;
-  font-family: var(--ff);
-  font-size: .9rem;
-  color: var(--ink);
-  padding: 5px 0;
-  outline: none;
-  transition: border-color .2s;
-}
-.word-input:focus { border-bottom-color: var(--gold); }
-
-/* Textarea */
-.form-ta {
-  width: 100%;
-  min-height: 150px;
-  border: none;
-  background: transparent;
-  font-family: var(--ff);
-  font-size: .95rem;
-  color: var(--ink);
-  outline: none;
-  line-height: 1.8;
-  padding: 0;
-}
-
-/* Form actions */
-.form-footer {
-  display: flex;
-  gap: 10px;
-  align-items: center;
-  flex-wrap: wrap;
-  padding-top: 24px;
-  border-top: 1px solid var(--border);
-  margin-top: 28px;
-}
-.autosave-msg {
-  margin-right: auto;
-  font-family: var(--ff);
-  font-size: .75rem;
-  font-style: italic;
-  color: var(--muted);
-  min-width: 140px;
-  transition: opacity .3s;
-}
-
-/* ═══════════════════════════════════════════
-   VIEW SCREEN
-═══════════════════════════════════════════ */
-.view-topbar {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  margin-bottom: 28px;
-  padding-bottom: 18px;
-  border-bottom: 1px solid var(--border);
-  flex-wrap: wrap;
-}
-.view-topbar h2 {
-  font-family: var(--ff);
-  font-size: 1.5rem;
-  font-weight: 700;
-  color: var(--ink);
-}
-.view-topbar-actions { margin-left:auto; display:flex; gap:8px; flex-wrap:wrap; }
-
-/* The "paper" doc */
-#print-area {
-  background: var(--white);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  padding: 40px 44px;
-  box-shadow: var(--shadow-lg);
-}
-
-@media(max-width:520px){ #print-area { padding: 24px 18px; } }
-
-.view-doc-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  padding-bottom: 22px;
-  margin-bottom: 28px;
-  border-bottom: 2px solid var(--ink);
-  gap: 12px;
-  flex-wrap: wrap;
-}
-
-.view-bible-ref {
-  font-family: var(--ff);
-  font-size: 1.4rem;
-  font-weight: 700;
-  color: var(--ink);
-  letter-spacing: .02em;
-}
-
-.view-app-brand {
-  font-family: var(--ff);
-  font-size: .7rem;
-  font-weight: 400;
-  font-style: italic;
-  color: var(--muted);
-  letter-spacing: .06em;
-  margin-top: 4px;
-}
-
-.view-date-col { text-align:right; }
-.view-date-str {
-  font-family: var(--ff);
-  font-size: .82rem;
-  color: var(--muted);
-  font-style: italic;
-  margin-bottom: 8px;
-}
-.view-wd-dots { display:flex; gap:5px; justify-content:flex-end; }
-.view-wd {
-  width: 24px; height: 24px;
-  border-radius: 50%;
-  border: 1px solid var(--border);
-  display:flex; align-items:center; justify-content:center;
-  font-family: var(--ff);
-  font-size: .6rem;
-  font-weight: 700;
-  color: var(--muted);
-  text-transform: uppercase;
-}
-.view-wd.active { background:var(--ink); border-color:var(--ink); color:var(--gold); }
-
-.view-section { margin-bottom: 26px; }
-
-.view-sec-title {
-  display: flex;
-  align-items: baseline;
-  gap: 10px;
-  font-family: var(--ff);
-  font-size: .75rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: .14em;
-  color: var(--ink2);
-  padding-bottom: 7px;
-  border-bottom: 1px solid var(--border);
-  margin-bottom: 14px;
-}
-.view-sec-guide {
-  font-style: italic;
-  font-weight: 400;
-  text-transform: none;
-  letter-spacing: 0;
-  font-size: .8rem;
-  color: var(--muted);
-  margin-left: auto;
-}
-
-.view-words-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 20px;
-}
-.view-words-col-label {
-  font-family: var(--ff);
-  font-size: .68rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: .1em;
-  color: var(--muted);
-  margin-bottom: 8px;
-}
-.view-word-item {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-family: var(--ff);
-  font-size: .9rem;
-  color: var(--ink2);
-  margin-bottom: 5px;
-}
-.view-text {
-  font-family: var(--ff);
-  font-size: .92rem;
-  color: var(--ink2);
-  line-height: 1.8;
-  white-space: pre-wrap;
-  font-style: italic;
-  font-weight: 400;
-}
-.view-empty {
-  font-family: var(--ff);
-  font-style: italic;
-  color: var(--muted);
-  font-size: .85rem;
-}
-
-/* ═══════════════════════════════════════════
-   PROFILE SCREEN
-═══════════════════════════════════════════ */
-.profile-wrap {
-  max-width: 480px;
-  margin: 0 auto;
-}
-
-.profile-topbar {
-  display:flex; align-items:center; gap:12px;
-  margin-bottom: 32px;
-  padding-bottom: 18px;
-  border-bottom: 1px solid var(--border);
-}
-.profile-topbar h2 {
-  font-family: var(--ff);
-  font-size: 1.4rem;
-  font-weight: 700;
-}
-
-.profile-avatar-area {
-  text-align: center;
-  margin-bottom: 32px;
-}
-
-.profile-avatar-big {
-  width: 100px;
-  height: 100px;
-  border-radius: 50%;
-  border: 3px solid var(--gold);
-  overflow: hidden;
-  margin: 0 auto 14px;
-  background: var(--surface2);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  transition: var(--transition);
-  position: relative;
-}
-.profile-avatar-big:hover { border-color: var(--gold-dk); }
-.profile-avatar-big img { width:100%; height:100%; object-fit:cover; }
-.profile-avatar-overlay {
-  position:absolute; inset:0;
-  background:rgba(0,0,0,.45);
-  display:flex; align-items:center; justify-content:center;
-  opacity:0;
-  border-radius:50%;
-  transition: opacity .2s;
-  color:#fff;
-  font-family:var(--ff);
-  font-size:.72rem;
-  font-style:italic;
-}
-.profile-avatar-big:hover .profile-avatar-overlay { opacity:1; }
-
-.profile-field {
-  margin-bottom: 20px;
-}
-.profile-field label {
-  display:block;
-  font-family: var(--ff);
-  font-size: .72rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: .12em;
-  color: var(--muted);
-  margin-bottom: 8px;
-}
-.profile-field input {
-  width:100%;
-  border: 1.5px solid var(--border);
-  border-radius: var(--radius-sm);
-  background: var(--white);
-  font-family: var(--ff);
-  font-size: 1rem;
-  color: var(--ink);
-  padding: 11px 14px;
-  outline: none;
-  transition: border-color .2s;
-}
-.profile-field input:focus { border-color: var(--gold); }
-
-.cloud-section {
-  margin-top: 36px;
-  padding-top: 28px;
-  border-top: 1px solid var(--border);
-}
-.cloud-section h3 {
-  font-family: var(--ff);
-  font-size: 1.05rem;
-  font-weight: 700;
-  color: var(--ink);
-  margin-bottom: 6px;
-}
-.cloud-section p {
-  font-family: var(--ff);
-  font-size: .85rem;
-  font-style: italic;
-  color: var(--muted);
-  margin-bottom: 18px;
-  line-height: 1.6;
-}
-
-.cloud-option {
-  background: var(--white);
-  border: 1.5px solid var(--border);
-  border-radius: var(--radius);
-  padding: 16px 18px;
-  margin-bottom: 12px;
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  cursor: pointer;
-  transition: var(--transition);
-}
-.cloud-option:hover { border-color: var(--gold-lt); background: var(--surface); box-shadow: var(--shadow-sm); }
-.cloud-option.selected { border-color: var(--gold); background: rgba(184,151,90,.06); }
-
-.cloud-icon {
-  width: 40px; height: 40px;
-  border-radius: var(--radius-sm);
-  display:flex; align-items:center; justify-content:center;
-  flex-shrink: 0;
-  font-size: 1.3rem;
-}
-.cloud-option-text strong {
-  display:block;
-  font-family:var(--ff);
-  font-size:.92rem;
-  font-weight:700;
-  color:var(--ink);
-  margin-bottom:2px;
-}
-.cloud-option-text span {
-  font-family:var(--ff);
-  font-size:.78rem;
-  font-style:italic;
-  color:var(--muted);
-}
-
-.cloud-config {
-  background: var(--surface2);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
-  padding: 16px;
-  margin-top: 8px;
-  display:none;
-}
-.cloud-config.open { display:block; animation:fadeUp .2s ease; }
-.cloud-config label {
-  display:block;
-  font-family:var(--ff);
-  font-size:.7rem;
-  font-weight:700;
-  text-transform:uppercase;
-  letter-spacing:.1em;
-  color:var(--muted);
-  margin-bottom:6px;
-}
-.cloud-config input {
-  width:100%;
-  border:1.5px solid var(--border);
-  border-radius:var(--radius-sm);
-  background:var(--white);
-  font-family:var(--ff);
-  font-size:.88rem;
-  color:var(--ink);
-  padding:9px 12px;
-  outline:none;
-  margin-bottom:10px;
-}
-.cloud-config input:focus { border-color:var(--gold); }
-.cloud-status {
-  margin-top:10px;
-  font-family:var(--ff);
-  font-size:.8rem;
-  font-style:italic;
-  padding: 8px 12px;
-  border-radius: 4px;
-}
-.cloud-status.ok { background:rgba(58,107,74,.1); color:var(--success); }
-.cloud-status.err { background:rgba(139,58,58,.1); color:var(--danger); }
-
-/* ═══════════════════════════════════════════
-   TOAST
-═══════════════════════════════════════════ */
-.toast {
-  position: fixed;
-  bottom: 28px;
-  left: 50%;
-  transform: translateX(-50%) translateY(80px);
-  background: var(--ink);
-  color: var(--gold-lt);
-  padding: 12px 24px;
-  border-radius: 50px;
-  font-family: var(--ff);
-  font-size: .85rem;
-  font-style: italic;
-  border: 1px solid var(--gold-dk);
-  box-shadow: var(--shadow-lg);
-  z-index: 999;
-  pointer-events: none;
-  transition: transform .3s cubic-bezier(.34,1.56,.64,1), opacity .3s;
-  opacity: 0;
-  white-space: nowrap;
-}
-.toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
-
-/* ═══════════════════════════════════════════
-   MODAL
-═══════════════════════════════════════════ */
-.modal-overlay {
-  position: fixed; inset:0;
-  background: rgba(22,20,15,.65);
-  backdrop-filter: blur(4px);
-  z-index: 200;
-  display:none;
-  align-items:center;
-  justify-content:center;
-  padding: 20px;
-}
-.modal-overlay.open { display:flex; }
-
-.modal {
-  background: var(--white);
-  border-radius: var(--radius);
-  padding: 32px;
-  max-width: 480px;
-  width: 100%;
-  box-shadow: var(--shadow-lg);
-  animation: fadeUp .25s ease;
-}
-.modal h3 {
-  font-family: var(--ff);
-  font-size: 1.3rem;
-  font-weight: 700;
-  margin-bottom: 10px;
-  color: var(--ink);
-}
-.modal p {
-  font-family: var(--ff);
-  font-size: .88rem;
-  font-style: italic;
-  color: var(--muted);
-  margin-bottom: 22px;
-  line-height: 1.65;
-}
-.modal-actions { display:flex; gap:10px; justify-content:flex-end; flex-wrap:wrap; }
-
-.share-box {
-  background: var(--surface2);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
-  padding: 14px;
-  font-family: var(--ff);
-  font-size: .8rem;
-  color: var(--ink2);
-  white-space: pre-wrap;
-  line-height: 1.65;
-  max-height: 220px;
-  overflow-y: auto;
-  margin-bottom: 18px;
-}
-
-/* ═══════════════════════════════════════════
-   NAV TABS (bottom mobile)
-═══════════════════════════════════════════ */
-@media(max-width:640px){
-  .header-actions-bar { display:none; }
-  .bottom-nav {
-    position: fixed;
-    bottom: 0; left:0; right:0;
-    background: var(--ink);
-    display: flex;
-    border-top: 1px solid rgba(255,255,255,.07);
-    z-index: 89;
-    padding-bottom: env(safe-area-inset-bottom, 0);
-  }
-  .bottom-nav-btn {
-    flex:1;
-    display:flex;
-    flex-direction:column;
-    align-items:center;
-    justify-content:center;
-    padding: 10px 8px;
-    gap: 4px;
-    color: rgba(255,255,255,.4);
-    font-family: var(--ff);
-    font-size:.6rem;
-    font-weight:700;
-    text-transform:uppercase;
-    letter-spacing:.06em;
-    transition:color .2s;
-    cursor:pointer;
-    border:none;
-    background:none;
-  }
-  .bottom-nav-btn.active, .bottom-nav-btn:hover { color: var(--gold); }
-  .app-main { padding-bottom: 90px; }
-}
-@media(min-width:641px){
-  .bottom-nav { display:none; }
-}
-
-/* ═══════════════════════════════════════════
-   PRINT STYLES
-═══════════════════════════════════════════ */
-@media print {
-  .app-header, .view-topbar, .app-footer, .bottom-nav, .toast, .modal-overlay { display:none !important; }
-  body { background:#fff; }
-  #print-area { box-shadow:none; border:none; padding:20px; }
-  .app-main { padding:0; }
-}
-
-/* ═══════════════════════════════════════════
-   UTIL
-═══════════════════════════════════════════ */
-.hidden { display:none !important; }
-.text-center { text-align:center; }
 </style>
 </head>
 <body>
-<div class="app-shell">
+<div class="shell">
 
-<!-- ══════════ HEADER ══════════ -->
-<header class="app-header">
-  <div class="header-inner">
-    <div class="header-logo">Devocionário</div>
-    <div class="header-tagline">Aprimorando o relacionamento com Deus pela prática devocional</div>
-    <div class="header-divider"></div>
+<header class="hdr">
+  <div class="hdr-brand">
+    <div class="hdr-logo">Devocionar&#x00ED;o</div>
+    <div class="hdr-tag">Aprimorando o relacionamento com Deus pela pr&#x00E1;tica devocional</div>
+    <div class="hdr-div"></div>
   </div>
-  <div class="header-actions-bar">
-    <!-- User pill -->
-    <div class="user-pill" onclick="showScreen('profile')">
-      <div class="user-avatar" id="header-avatar">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
-      </div>
-      <span class="user-name" id="header-username">Meu Perfil</span>
+  <div class="hdr-bar">
+    <div class="upill" onclick="go('profile')">
+      <div class="uav" id="hav"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#B8975A" stroke-width="1.8"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg></div>
+      <span class="uname" id="hname">Meu Perfil</span>
     </div>
-    <div style="display:flex;gap:8px;">
-      <button class="btn btn-outline btn-sm" onclick="showScreen('profile')">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
-        Perfil
+    <div class="hacts">
+      <button class="thbtn" onclick="togTh()" title="Alternar tema">
+        <svg id="imoon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1111.21 3a7 7 0 009.79 9.79z"/></svg>
+        <svg id="isun" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:none"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
       </button>
-      <button class="btn btn-primary btn-sm" onclick="showScreen('form', null)">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-        Novo
-      </button>
+      <button class="btn btn-o btn-sm" onclick="go('profile')">Perfil</button>
+      <button class="btn btn-p btn-sm" onclick="go('form',null)">+ Novo</button>
     </div>
   </div>
 </header>
 
-<!-- ══════════ MAIN ══════════ -->
-<main class="app-main">
+<main class="main">
 
-  <!-- ── HOME ── -->
-  <div id="screen-home" class="screen active">
-    <div class="home-hero">
-      <div class="home-hero-left">
-        <h1>Meus Devocionais</h1>
-        <p>Registre, reflita e cresça na sua caminhada com Deus</p>
-      </div>
-      <div class="streak-badge">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10 10-4.5 10-10S17.5 2 12 2zm0 16v-4m0-4V8"/></svg>
-        <span class="streak-num" id="streak-num">0</span>
-        <span>dias seguidos</span>
-      </div>
+<!-- HOME -->
+<div id="s-home" class="scr on">
+  <div class="wcard">
+    <div class="wavwrap" onclick="document.getElementById('avinp').click()">
+      <div class="wav" id="wav"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#B8975A" stroke-width="1.5"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg></div>
+      <div class="wavbadge"><svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></div>
+      <input type="file" id="avinp" accept="image/*" style="display:none" onchange="handleAv(this,'home')"/>
     </div>
-    <div class="s-title">Registros</div>
-    <div class="card-list" id="card-list">
-      <!-- rendered by JS -->
+    <div class="wtxt">
+      <div class="wgreet">Bem-vindo(a) ao seu espa&#x00E7;o devocional</div>
+      <div class="wname" id="wname">Clique para adicionar seu nome</div>
+      <div class="spill"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg><span class="snum" id="snum">0</span><span>dias seguidos</span></div>
     </div>
+    <div class="wcta"><button class="btn btn-p" onclick="go('form',null)"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Novo Devocional</button></div>
   </div>
+  <div class="stit">Meus Registros</div>
+  <div class="clist" id="clist"></div>
+</div>
 
-  <!-- ── FORM ── -->
-  <div id="screen-form" class="screen">
-    <div class="form-topbar">
-      <button class="btn-icon-only" onclick="showScreen('home')" title="Voltar">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
-      </button>
-      <h2 id="form-title">Novo Devocional</h2>
-      <div class="form-topbar-actions">
-        <button class="btn btn-ghost btn-sm" onclick="saveDraft()">Rascunho</button>
-        <button class="btn btn-primary btn-sm" onclick="saveDevotional()">Salvar</button>
-      </div>
-    </div>
-
-    <div class="progress-wrap"><div class="progress-fill" id="progress-fill" style="width:0%"></div></div>
-
-    <!-- Bible + Date -->
-    <div class="bible-block">
-      <div class="bible-field">
-        <label>
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:inline;vertical-align:middle;margin-right:4px"><path d="M4 19.5A2.5 2.5 0 016.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z"/></svg>
-          Texto Bíblico
-        </label>
-        <input type="text" id="f-bible" placeholder="Ex: João 3:16" oninput="updateProgress()"/>
-      </div>
-      <div class="weekday-col">
-        <label>
-          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:inline;vertical-align:middle;margin-right:4px"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-          <input type="date" id="f-date" oninput="updateWeekdays();updateProgress();" style="background:transparent;border:none;border-bottom:1px solid var(--gold-dk);color:#fff;font-family:var(--ff);font-size:.8rem;outline:none;padding:3px 0;width:130px;color-scheme:dark;"/>
-        </label>
-        <div class="weekday-dots" id="wd-row">
-          <div class="wd-dot" data-d="0">D</div>
-          <div class="wd-dot" data-d="1">S</div>
-          <div class="wd-dot" data-d="2">T</div>
-          <div class="wd-dot" data-d="3">Q</div>
-          <div class="wd-dot" data-d="4">Q</div>
-          <div class="wd-dot" data-d="5">S</div>
-          <div class="wd-dot" data-d="6">S</div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Palavras -->
-    <div class="form-section">
-      <div class="sec-card">
-        <div class="sec-header">
-          <div class="sec-header-icon">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
-          </div>
-          <div class="sec-header-text">
-            <strong>Palavras</strong>
-            <span>Palavras encontradas no texto</span>
-          </div>
-        </div>
-        <div class="sec-body">
-          <div class="words-grid">
-            <div>
-              <div class="words-col-label">✓ Novas</div>
-              <div id="words-new"></div>
-            </div>
-            <div>
-              <div class="words-col-label">✓ Repetidas</div>
-              <div id="words-rep"></div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Resumo -->
-    <div class="form-section">
-      <div class="sec-card">
-        <div class="sec-header">
-          <div class="sec-header-icon">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
-          </div>
-          <div class="sec-header-text">
-            <strong>Resumo do Texto</strong>
-            <span>O que o texto de maneira geral está dizendo?</span>
-          </div>
-        </div>
-        <div class="sec-body">
-          <textarea class="form-ta" id="f-resumo" placeholder="Escreva aqui o resumo do texto bíblico..." oninput="updateProgress()"></textarea>
-        </div>
-      </div>
-    </div>
-
-    <!-- Lições -->
-    <div class="form-section">
-      <div class="sec-card">
-        <div class="sec-header">
-          <div class="sec-header-icon">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-          </div>
-          <div class="sec-header-text">
-            <strong>Lições Preciosas</strong>
-            <span>Que lições posso extrair para a minha vida?</span>
-          </div>
-        </div>
-        <div class="sec-body">
-          <textarea class="form-ta" id="f-licoes" placeholder="Que lições posso extrair para a minha vida..." oninput="updateProgress()"></textarea>
-        </div>
-      </div>
-    </div>
-
-    <!-- Oração -->
-    <div class="form-section">
-      <div class="sec-card">
-        <div class="sec-header">
-          <div class="sec-header-icon">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8h1a4 4 0 010 8h-1"/><path d="M2 8h16v9a4 4 0 01-4 4H6a4 4 0 01-4-4V8z"/><line x1="6" y1="1" x2="6" y2="4"/><line x1="10" y1="1" x2="10" y2="4"/><line x1="14" y1="1" x2="14" y2="4"/></svg>
-          </div>
-          <div class="sec-header-text">
-            <strong>Motivos de Oração</strong>
-            <span>No que preciso pedir a ajuda do Senhor para melhorar?</span>
-          </div>
-        </div>
-        <div class="sec-body">
-          <textarea class="form-ta" id="f-oracao" placeholder="No que preciso pedir a ajuda do Senhor..." oninput="updateProgress()"></textarea>
-        </div>
-      </div>
-    </div>
-
-    <!-- Anotações -->
-    <div class="form-section">
-      <div class="sec-card">
-        <div class="sec-header">
-          <div class="sec-header-icon">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
-          </div>
-          <div class="sec-header-text">
-            <strong>Anotações Gerais</strong>
-            <span>Observações e notas livres</span>
-          </div>
-        </div>
-        <div class="sec-body">
-          <textarea class="form-ta" id="f-anotacoes" placeholder="Observações livres..." oninput="updateProgress()"></textarea>
-        </div>
-      </div>
-    </div>
-
-    <div class="form-footer">
-      <span class="autosave-msg" id="autosave-msg"></span>
-      <button class="btn btn-ghost btn-sm" onclick="saveDraft()">Salvar Rascunho</button>
-      <button class="btn btn-primary" onclick="saveDevotional()">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
-        Salvar Devocional
-      </button>
-    </div>
+<!-- FORM -->
+<div id="s-form" class="scr">
+  <div class="ftop">
+    <button class="ibtn" onclick="go('home')"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg></button>
+    <h2 id="ftit">Novo Devocional</h2>
+    <div class="ftr"><button class="btn btn-g btn-sm" onclick="sDraft()">Rascunho</button><button class="btn btn-p btn-sm" onclick="sDev()">Salvar</button></div>
   </div>
-
-  <!-- ── VIEW ── -->
-  <div id="screen-view" class="screen">
-    <div class="view-topbar">
-      <button class="btn-icon-only" onclick="showScreen('home')" title="Voltar">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
-      </button>
-      <h2>Devocional</h2>
-      <div class="view-topbar-actions">
-        <button class="btn btn-ghost btn-sm" onclick="editCurrentView()">
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
-          Editar
-        </button>
-        <button class="btn btn-ghost btn-sm" onclick="openShareModal()">
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
-          Compartilhar
-        </button>
-        <button class="btn btn-primary btn-sm" onclick="exportPDF()">
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-          PDF
-        </button>
-      </div>
-    </div>
-    <div id="print-area"><!-- filled by JS --></div>
-  </div>
-
-  <!-- ── PROFILE ── -->
-  <div id="screen-profile" class="screen">
-    <div class="profile-wrap">
-      <div class="profile-topbar">
-        <button class="btn-icon-only" onclick="showScreen('home')" title="Voltar">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
-        </button>
-        <h2>Meu Perfil</h2>
-      </div>
-
-      <div class="profile-avatar-area">
-        <div class="profile-avatar-big" onclick="document.getElementById('avatar-input').click()">
-          <img id="profile-avatar-img" src="" style="display:none"/>
-          <svg id="profile-avatar-placeholder" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="1.5"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
-          <div class="profile-avatar-overlay">Trocar foto</div>
-        </div>
-        <input type="file" id="avatar-input" accept="image/*" style="display:none" onchange="handleAvatarUpload(this)"/>
-        <div style="font-family:var(--ff);font-size:.78rem;font-style:italic;color:var(--muted);">Clique para adicionar sua foto</div>
-      </div>
-
-      <div class="profile-field">
-        <label>Seu nome</label>
-        <input type="text" id="profile-name" placeholder="Como você se chama?" oninput="updateHeaderUser()"/>
-      </div>
-
-      <!-- Cloud sync -->
-      <div class="cloud-section">
-        <h3>Sincronização em Nuvem</h3>
-        <p>Escolha um serviço para sincronizar seus devocionais entre dispositivos e nunca perder seus registros.</p>
-
-        <div class="cloud-option" id="cloud-none" onclick="selectCloud('none')">
-          <div class="cloud-icon" style="background:var(--surface2);">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="1.8"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>
-          </div>
-          <div class="cloud-option-text">
-            <strong>Sem sincronização</strong>
-            <span>Dados salvos apenas neste dispositivo</span>
-          </div>
-        </div>
-
-        <div class="cloud-option" id="cloud-firebase" onclick="selectCloud('firebase')">
-          <div class="cloud-icon" style="background:#FFF8E1;">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#F57C00" stroke-width="1.8"><path d="M12 2L2 19h20L12 2z"/><path d="M12 2v17"/></svg>
-          </div>
-          <div class="cloud-option-text">
-            <strong>Firebase (Google)</strong>
-            <span>Sincronize com sua conta Google Firebase</span>
-          </div>
-        </div>
-        <div class="cloud-config" id="cfg-firebase">
-          <label>API Key do Firebase</label>
-          <input type="text" id="fb-apikey" placeholder="AIzaSy..."/>
-          <label>Database URL</label>
-          <input type="text" id="fb-url" placeholder="https://seu-projeto.firebaseio.com"/>
-          <button class="btn btn-ghost btn-sm" onclick="testFirebase()">Testar conexão</button>
-          <div class="cloud-status" id="fb-status" style="display:none"></div>
-        </div>
-
-        <div class="cloud-option" id="cloud-supabase" onclick="selectCloud('supabase')">
-          <div class="cloud-icon" style="background:#F0FDF4;">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#16A34A" stroke-width="1.8"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg>
-          </div>
-          <div class="cloud-option-text">
-            <strong>Supabase</strong>
-            <span>Open-source — sincronize com seu projeto Supabase</span>
-          </div>
-        </div>
-        <div class="cloud-config" id="cfg-supabase">
-          <label>URL do projeto Supabase</label>
-          <input type="text" id="sb-url" placeholder="https://xxxx.supabase.co"/>
-          <label>Anon Key</label>
-          <input type="text" id="sb-key" placeholder="eyJhbGci..."/>
-          <button class="btn btn-ghost btn-sm" onclick="testSupabase()">Testar conexão</button>
-          <div class="cloud-status" id="sb-status" style="display:none"></div>
-        </div>
-      </div>
-
-      <div style="margin-top:28px;display:flex;gap:10px;justify-content:flex-end;flex-wrap:wrap;">
-        <button class="btn btn-ghost btn-sm" onclick="exportJSON()">
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-          Exportar dados (JSON)
-        </button>
-        <button class="btn btn-primary btn-sm" onclick="saveProfile()">
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
-          Salvar Perfil
-        </button>
+  <div class="pw"><div class="pf" id="pbar" style="width:0%"></div></div>
+  <div class="bblk">
+    <div><label class="blbl">Texto B&#x00ED;blico</label><input class="binp" type="text" id="fbi" placeholder="Ex: Jo&#x00E3;o 3:16" oninput="upP()"/></div>
+    <div><label class="blbl">Data</label><input class="dinp" type="date" id="fdt" oninput="upWD();upP()"/>
+      <div class="wdots" id="wdr">
+        <div class="wdot" data-d="0">D</div><div class="wdot" data-d="1">S</div><div class="wdot" data-d="2">T</div><div class="wdot" data-d="3">Q</div><div class="wdot" data-d="4">Q</div><div class="wdot" data-d="5">S</div><div class="wdot" data-d="6">S</div>
       </div>
     </div>
   </div>
+  <div class="fsec"><div class="scard"><div class="shdr"><div class="sic"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4z"/></svg></div><div class="sht"><strong>Palavras</strong><span>Encontradas no texto</span></div></div><div class="sbdy"><div class="wgrid"><div><div class="wlbl">&#x2713; Novas</div><div id="wn"></div></div><div><div class="wlbl">&#x2713; Repetidas</div><div id="wr"></div></div></div></div></div></div>
+  <div class="fsec"><div class="scard"><div class="shdr"><div class="sic"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/></svg></div><div class="sht"><strong>Resumo do Texto</strong><span>O que o texto est&#x00E1; dizendo?</span></div></div><div class="sbdy"><textarea class="fta" id="fres" placeholder="Escreva o resumo..." oninput="upP()"></textarea></div></div></div>
+  <div class="fsec"><div class="scard"><div class="shdr"><div class="sic"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></div><div class="sht"><strong>Li&#x00E7;&#x00F5;es Preciosas</strong><span>Que li&#x00E7;&#x00F5;es posso extrair para a minha vida?</span></div></div><div class="sbdy"><textarea class="fta" id="flic" placeholder="Li&#x00E7;&#x00F5;es preciosas..." oninput="upP()"></textarea></div></div></div>
+  <div class="fsec"><div class="scard"><div class="shdr"><div class="sic"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8h1a4 4 0 010 8h-1"/><path d="M2 8h16v9a4 4 0 01-4 4H6a4 4 0 01-4-4V8z"/><line x1="6" y1="1" x2="6" y2="4"/><line x1="10" y1="1" x2="10" y2="4"/><line x1="14" y1="1" x2="14" y2="4"/></svg></div><div class="sht"><strong>Motivos de Ora&#x00E7;&#x00E3;o</strong><span>No que preciso pedir a ajuda do Senhor?</span></div></div><div class="sbdy"><textarea class="fta" id="fora" placeholder="Motivos de ora&#x00E7;&#x00E3;o..." oninput="upP()"></textarea></div></div></div>
+  <div class="fsec"><div class="scard"><div class="shdr"><div class="sic"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></div><div class="sht"><strong>Anota&#x00E7;&#x00F5;es Gerais</strong><span>Observa&#x00E7;&#x00F5;es livres</span></div></div><div class="sbdy"><textarea class="fta" id="fano" placeholder="Anota&#x00E7;&#x00F5;es livres..." oninput="upP()"></textarea></div></div></div>
+  <div class="fftr"><span class="asmsg" id="asmsg"></span><button class="btn btn-g btn-sm" onclick="sDraft()">Salvar Rascunho</button><button class="btn btn-p" onclick="sDev()"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>Salvar Devocional</button></div>
+</div>
+
+<!-- VIEW -->
+<div id="s-view" class="scr">
+  <div class="vtop">
+    <button class="ibtn" onclick="go('home')"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg></button>
+    <h2>Devocional</h2>
+    <div class="vtr">
+      <button class="btn btn-g btn-sm" onclick="editV()">&#x270F;&#xFE0F; Editar</button>
+      <button class="btn btn-g btn-sm" onclick="openShr()">&#x2197; Compartilhar</button>
+      <button class="btn btn-p btn-sm" onclick="expPDF()"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>PDF</button>
+    </div>
+  </div>
+  <div id="parea"></div>
+</div>
+
+<!-- PROFILE -->
+<div id="s-profile" class="scr">
+  <div class="pfw">
+    <div class="pftop">
+      <button class="ibtn" onclick="go('home')"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg></button>
+      <h2>Meu Perfil</h2>
+    </div>
+    <div class="pfava">
+      <div class="pfav" onclick="document.getElementById('avinp2').click()">
+        <img id="pfimg" src="" style="display:none"/>
+        <svg id="pfph" width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#B8975A" stroke-width="1.5"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+        <div class="pfavo">Trocar foto</div>
+      </div>
+      <input type="file" id="avinp2" accept="image/*" style="display:none" onchange="handleAv(this,'profile')"/>
+      <div class="avhint">Clique para adicionar sua foto</div>
+    </div>
+    <div class="pff"><label>Seu nome</label><input type="text" id="pfname" placeholder="Como voc&#x00EA; se chama?" oninput="liveN()"/></div>
+    <div class="pff">
+      <label>Apar&#x00EA;ncia</label>
+      <div style="display:flex;gap:10px">
+        <button class="btn btn-g btn-sm" id="blt" onclick="setTh('light')" style="flex:1">&#x2600;&#xFE0F; Claro</button>
+        <button class="btn btn-g btn-sm" id="bdk" onclick="setTh('dark')" style="flex:1">&#x1F319; Escuro</button>
+      </div>
+    </div>
+    <div class="clsec">
+      <h3>Sincroniza&#x00E7;&#x00E3;o em Nuvem</h3>
+      <p>Sincronize seus devocionais entre dispositivos para nunca perder seus registros.</p>
+      <div class="co sel" id="co-none" onclick="selC('none')"><div class="coic" style="background:var(--surf2)"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="1.8"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg></div><div class="cotxt"><strong>Sem sincroniza&#x00E7;&#x00E3;o</strong><span>Dados salvos apenas neste dispositivo</span></div></div>
+      <div class="co" id="co-firebase" onclick="selC('firebase')"><div class="coic" style="background:#FFF8E1"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#F57C00" stroke-width="1.8"><path d="M12 2L2 19h20L12 2z"/><path d="M12 2v17"/></svg></div><div class="cotxt"><strong>Firebase (Google)</strong><span>Sincronize com sua conta Google Firebase</span></div></div>
+      <div class="cocfg" id="cfgfb"><label>API Key</label><input type="text" id="fbk" placeholder="AIzaSy..."/><label>Database URL</label><input type="text" id="fbu" placeholder="https://seu-projeto.firebaseio.com"/><button class="btn btn-g btn-sm" onclick="tstFB()">Testar conex&#x00E3;o</button><div class="cst" id="fbst"></div></div>
+      <div class="co" id="co-supabase" onclick="selC('supabase')"><div class="coic" style="background:#F0FDF4"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#16A34A" stroke-width="1.8"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg></div><div class="cotxt"><strong>Supabase</strong><span>Open-source &#x2014; sincronize com seu projeto Supabase</span></div></div>
+      <div class="cocfg" id="cfgsb"><label>URL do projeto</label><input type="text" id="sbu" placeholder="https://xxxx.supabase.co"/><label>Anon Key</label><input type="text" id="sbk" placeholder="eyJhbGci..."/><button class="btn btn-g btn-sm" onclick="tstSB()">Testar conex&#x00E3;o</button><div class="cst" id="sbst"></div></div>
+    </div>
+    <div class="sapp">
+      <h3>Compartilhar o Devocioni&#x00E1;rio</h3>
+      <p>Indique o app para um amigo e ajude-o a crescer na vida devocional.</p>
+      <button class="btn btn-wa" onclick="shrApp()"><svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>Compartilhar via WhatsApp</button>
+    </div>
+    <div style="margin-top:22px;display:flex;gap:10px;justify-content:flex-end;flex-wrap:wrap">
+      <button class="btn btn-g btn-sm" onclick="expJSON()"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>Exportar backup (JSON)</button>
+      <button class="btn btn-p btn-sm" onclick="savePf()"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>Salvar Perfil</button>
+    </div>
+  </div>
+</div>
 
 </main>
+<footer class="footer">Desenvolvido por Reobote Apps</footer>
 
-<!-- ══════════ FOOTER ══════════ -->
-<footer class="app-footer">Desenvolvido por Reobote Apps</footer>
-
-<!-- ══════════ BOTTOM NAV (mobile) ══════════ -->
-<nav class="bottom-nav">
-  <button class="bottom-nav-btn active" id="bnav-home" onclick="showScreen('home');setActiveNav('home')">
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
-    Início
-  </button>
-  <button class="bottom-nav-btn" id="bnav-new" onclick="showScreen('form',null);setActiveNav('new')">
-    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
-    Novo
-  </button>
-  <button class="bottom-nav-btn" id="bnav-profile" onclick="showScreen('profile');setActiveNav('profile')">
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
-    Perfil
-  </button>
+<nav class="bnav">
+  <button class="bnb on" id="bn-home" onclick="go('home');setN('home')"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>In&#x00ED;cio</button>
+  <button class="bnb" id="bn-new" onclick="go('form',null);setN('new')"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>Novo</button>
+  <button class="bnb" id="bn-profile" onclick="go('profile');setN('profile')"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>Perfil</button>
 </nav>
-
-</div><!-- /app-shell -->
-
-<!-- TOAST -->
-<div class="toast" id="toast"></div>
-
-<!-- MODAL: COMPARTILHAR -->
-<div class="modal-overlay" id="modal-share">
-  <div class="modal">
-    <h3>Compartilhar Devocional</h3>
-    <p>Copie o texto abaixo e envie por WhatsApp, e-mail ou qualquer outro meio.</p>
-    <div class="share-box" id="share-text"></div>
-    <div class="modal-actions">
-      <button class="btn btn-ghost btn-sm" onclick="closeModal('modal-share')">Fechar</button>
-      <button class="btn btn-primary btn-sm" onclick="copyShare()">
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
-        Copiar texto
-      </button>
-    </div>
-  </div>
 </div>
 
-<!-- MODAL: DELETE -->
-<div class="modal-overlay" id="modal-delete">
-  <div class="modal">
-    <h3>Excluir Devocional</h3>
-    <p>Tem certeza que deseja excluir este devocional? Esta ação não pode ser desfeita.</p>
-    <div class="modal-actions">
-      <button class="btn btn-ghost btn-sm" onclick="closeModal('modal-delete')">Cancelar</button>
-      <button class="btn btn-danger btn-sm" onclick="confirmDelete()">Excluir</button>
-    </div>
-  </div>
-</div>
+<div class="toast" id="tst"></div>
 
-<!-- ══════════════════════════════════════
-     JAVASCRIPT
-════════════════════════════════════════ -->
+<div class="mov" id="m-shr"><div class="modal"><h3>Compartilhar Devocional</h3><p>Copie o texto ou envie diretamente pelo WhatsApp.</p><div class="sbox" id="stxt"></div><div class="mac"><button class="btn btn-g btn-sm" onclick="closeM('m-shr')">Fechar</button><button class="btn btn-wa btn-sm" onclick="shrWA()"><svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>WhatsApp</button><button class="btn btn-p btn-sm" onclick="cpyShr()">Copiar</button></div></div></div>
+
+<div class="mov" id="m-del"><div class="modal"><h3>Excluir Devocional</h3><p>Tem certeza? Esta a&#x00E7;&#x00E3;o n&#x00E3;o pode ser desfeita.</p><div class="mac"><button class="btn btn-g btn-sm" onclick="closeM('m-del')">Cancelar</button><button class="btn btn-d btn-sm" onclick="confDel()">Excluir</button></div></div></div>
+
 <script>
-/* ─────────── STORAGE ─────────── */
-const KEY = 'devoc_v2';
-const PROFILE_KEY = 'devoc_profile';
+const K='dv3',PK='dpf2';
+let eid=null,vid=null,did=null,sc='none',ast=null;
+const ldA=()=>{try{return JSON.parse(localStorage.getItem(K))||[];}catch{return[];}};
+const svA=l=>localStorage.setItem(K,JSON.stringify(l));
+const ldP=()=>{try{return JSON.parse(localStorage.getItem(PK))||{};}catch{return{};}};
+const svP=p=>localStorage.setItem(PK,JSON.stringify(p));
+const gid=()=>'dv_'+Date.now()+'_'+Math.random().toString(36).slice(2,6);
+const fd=ds=>{if(!ds)return'';const[y,m,d]=ds.split('-');return d+'/'+m+'/'+y;};
 
-function loadAll() {
-  try { return JSON.parse(localStorage.getItem(KEY)) || []; } catch { return []; }
+function setTh(t){
+  document.documentElement.setAttribute('data-theme',t);
+  localStorage.setItem('dth',t);
+  document.getElementById('imoon').style.display=t==='dark'?'none':'';
+  document.getElementById('isun').style.display=t==='light'?'none':'';
+  const bl=document.getElementById('blt'),bd=document.getElementById('bdk');
+  if(bl){bl.style.background=t==='light'?'var(--gold)':'';bl.style.color=t==='light'?'var(--hdr)':'';}
+  if(bd){bd.style.background=t==='dark'?'var(--gold)':'';bd.style.color=t==='dark'?'var(--hdr)':'';}
 }
-function saveAll(list) { localStorage.setItem(KEY, JSON.stringify(list)); }
-function genId() { return 'dv_' + Date.now() + '_' + Math.random().toString(36).slice(2,6); }
+function togTh(){setTh(document.documentElement.getAttribute('data-theme')==='dark'?'light':'dark');}
 
-function loadProfile() {
-  try { return JSON.parse(localStorage.getItem(PROFILE_KEY)) || {}; } catch { return {}; }
-}
-function saveProfile_() {
-  const p = {
-    name: document.getElementById('profile-name').value.trim(),
-    avatar: document.getElementById('profile-avatar-img').src || '',
-    cloud: selectedCloud,
-    fbKey: document.getElementById('fb-apikey').value.trim(),
-    fbUrl: document.getElementById('fb-url').value.trim(),
-    sbUrl: document.getElementById('sb-url').value.trim(),
-    sbKey: document.getElementById('sb-key').value.trim(),
-  };
-  localStorage.setItem(PROFILE_KEY, JSON.stringify(p));
-}
-
-/* ─────────── NAVIGATION ─────────── */
-let currentEditId = null;
-let currentViewId = null;
-let deleteTargetId = null;
-let autosaveTimer = null;
-
-function showScreen(name, id) {
-  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-  const el = document.getElementById('screen-' + name);
-  if (el) el.classList.add('active');
-  if (name === 'home') { renderHome(); setActiveNav('home'); }
-  if (name === 'form') { setupForm(id); setActiveNav('new'); }
-  if (name === 'view') { setupView(id); }
-  if (name === 'profile') { setupProfile(); setActiveNav('profile'); }
+function go(n,id){
+  document.querySelectorAll('.scr').forEach(s=>s.classList.remove('on'));
+  document.getElementById('s-'+n).classList.add('on');
+  if(n==='home'){rHome();setN('home');}
+  if(n==='form'){sForm(id);setN('new');}
+  if(n==='view'){sView(id);}
+  if(n==='profile'){sPf();setN('profile');}
   window.scrollTo(0,0);
 }
-
-function setActiveNav(id) {
-  document.querySelectorAll('.bottom-nav-btn').forEach(b => b.classList.remove('active'));
-  const btn = document.getElementById('bnav-' + id);
-  if (btn) btn.classList.add('active');
+function setN(id){
+  document.querySelectorAll('.bnb').forEach(b=>b.classList.remove('on'));
+  const el=document.getElementById('bn-'+id);if(el)el.classList.add('on');
 }
 
-/* ─────────── HOME ─────────── */
-function fmtDate(ds) {
-  if (!ds) return '';
-  const [y,m,d] = ds.split('-');
-  return `${d}/${m}/${y}`;
+function rHome(){
+  const list=ldA(),s=[...list].sort((a,b)=>new Date(b.date)-new Date(a.date));
+  let sk=0,ch=new Date();ch.setHours(0,0,0,0);
+  while(true){const ds=ch.toISOString().slice(0,10);if(s.find(d=>d.date===ds&&!d.draft)){sk++;ch.setDate(ch.getDate()-1);}else break;}
+  document.getElementById('snum').textContent=sk;
+  const p=ldP();
+  const wn=document.getElementById('wname');
+  wn.textContent=p.name||'Clique para adicionar seu nome';
+  wn.style.cursor=p.name?'default':'pointer';
+  wn.onclick=p.name?null:()=>go('profile');
+  if(p.avatar)document.getElementById('wav').innerHTML='<img src="'+p.avatar+'" style="width:100%;height:100%;object-fit:cover"/>';
+  const c=document.getElementById('clist');
+  if(!s.length){c.innerHTML='<div class="empty"><div class="eic"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="1.5"><path d="M4 19.5A2.5 2.5 0 016.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z"/></svg></div><h3>Nenhum devocional ainda</h3><p>Comece registrando o devocional de hoje.</p><button class="btn btn-p" onclick="go(\'form\',null)">+ Criar primeiro devocional</button></div>';return;}
+  c.innerHTML=s.map(v=>'<div class="dcard"><div class="dctop" onclick="go(\'view\',\''+v.id+'\')"><div class="dca"></div><div class="dcb"><div class="dch"><div class="dcbi">'+(v.bible||'Sem texto')+(v.draft?'<span class="dtag">rascunho</span>':'')+'</div><div class="dcdt">'+fd(v.date)+'</div></div><div class="dcpv">'+(v.resumo||v.licoes||v.oracao||'Sem conte\u00FAdo.')+'</div></div></div><div class="dcf" onclick="event.stopPropagation()"><button class="btn btn-g btn-sm" onclick="go(\'view\',\''+v.id+'\')">Ver</button><button class="btn btn-g btn-sm" onclick="go(\'form\',\''+v.id+'\')">Editar</button><button class="btn btn-g btn-sm" onclick="oShrId(\''+v.id+'\')">Compartilhar</button><button class="btn btn-d btn-sm" onclick="oDel(\''+v.id+'\')">Excluir</button></div></div>').join('');
 }
 
-function renderHome() {
-  const list = loadAll();
-  const sorted = [...list].sort((a,b) => new Date(b.date) - new Date(a.date));
+function bW(){
+  ['wn','wr'].forEach(id=>{const el=document.getElementById(id);el.innerHTML='';for(let i=0;i<4;i++)el.innerHTML+='<div class="wrow"><div class="wdot2"></div><input class="winp" type="text" data-c="'+id+'" oninput="upP()"/></div>';});
+}
+function sForm(id){
+  eid=id||null;
+  document.getElementById('ftit').textContent=id?'Editar Devocional':'Novo Devocional';
+  bW();
+  const today=new Date().toISOString().slice(0,10);
+  if(id){const v=ldA().find(d=>d.id===id);if(v){document.getElementById('fbi').value=v.bible||'';document.getElementById('fdt').value=v.date||today;document.getElementById('fres').value=v.resumo||'';document.getElementById('flic').value=v.licoes||'';document.getElementById('fora').value=v.oracao||'';document.getElementById('fano').value=v.anotacoes||'';const wn=[...document.querySelectorAll('[data-c="wn"]')],wr=[...document.querySelectorAll('[data-c="wr"]')];(v.wordsNew||[]).forEach((w,i)=>{if(wn[i])wn[i].value=w;});(v.wordsRep||[]).forEach((w,i)=>{if(wr[i])wr[i].value=w;});}}
+  else{document.getElementById('fbi').value='';document.getElementById('fdt').value=today;['fres','flic','fora','fano'].forEach(x=>document.getElementById(x).value='');}
+  upWD();upP();stAS();
+}
+function upWD(){const v=document.getElementById('fdt').value;document.querySelectorAll('#wdr .wdot').forEach(d=>d.classList.remove('on'));const day=v?new Date(v+'T00:00').getDay():new Date().getDay();const dot=document.querySelector('#wdr .wdot[data-d="'+day+'"]');if(dot)dot.classList.add('on');}
+function gfd(dr=false){
+  const wn=[...document.querySelectorAll('[data-c="wn"]')].map(i=>i.value.trim());
+  const wr=[...document.querySelectorAll('[data-c="wr"]')].map(i=>i.value.trim());
+  return{id:eid||gid(),bible:document.getElementById('fbi').value.trim(),date:document.getElementById('fdt').value,wordsNew:wn,wordsRep:wr,resumo:document.getElementById('fres').value.trim(),licoes:document.getElementById('flic').value.trim(),oracao:document.getElementById('fora').value.trim(),anotacoes:document.getElementById('fano').value.trim(),draft:dr,updatedAt:new Date().toISOString()};
+}
+function persist(d){const l=ldA(),i=l.findIndex(x=>x.id===d.id);if(i>=0)l[i]=d;else l.push(d);svA(l);eid=d.id;}
+function sDraft(){const d=gfd(true);persist(d);toast('Rascunho salvo');flashAS('Rascunho salvo');}
+function sDev(){const d=gfd(false);if(!d.bible&&!d.resumo){toast('Preencha o texto b\u00EDblico ou o resumo.');return;}persist(d);toast('Devocional salvo!');go('home');}
+function stAS(){clearInterval(ast);ast=setInterval(()=>{persist(gfd(true));flashAS('Salvo automaticamente');},30000);}
+function flashAS(m){const el=document.getElementById('asmsg');el.textContent=m;el.style.opacity='1';setTimeout(()=>el.style.opacity='0',3000);}
+function upP(){const fs=['fbi','fdt','fres','flic','fora','fano'];const f=fs.filter(x=>document.getElementById(x).value.trim()).length;document.getElementById('pbar').style.width=Math.round(f/fs.length*100)+'%';}
 
-  // Streak
-  let streak = 0;
-  let check = new Date(); check.setHours(0,0,0,0);
-  while(true) {
-    const ds = check.toISOString().slice(0,10);
-    if (sorted.find(d => d.date === ds && !d.draft)) { streak++; check.setDate(check.getDate()-1); }
-    else break;
-  }
-  document.getElementById('streak-num').textContent = streak;
+function sView(id){
+  vid=id;const v=ldA().find(d=>d.id===id);if(!v){go('home');return;}
+  const days=['D','S','T','Q','Q','S','S'];
+  const di=v.date?new Date(v.date+'T00:00').getDay():-1;
+  const wH=days.map((d,i)=>'<div class="vwd '+(i===di?'on':'')+'">' +d+'</div>').join('');
+  const wI=arr=>(arr||[]).filter(w=>w).map(w=>'<div class="vwi"><div class="wdot2"></div>'+w+'</div>').join('')||'<span class="vemp">-</span>';
+  const tB=t=>t?'<div class="vtxt">'+t+'</div>':'<span class="vemp">N\u00E3o preenchido.</span>';
+  const vs=(ti,gu,bo)=>'<div class="vsec"><div class="vst">'+ti+'<span class="vsg">'+gu+'</span></div>'+bo+'</div>';
+  const p=ldP();
+  document.getElementById('parea').innerHTML='<div class="vdh"><div><div class="vdb">'+( v.bible||'--')+'</div><div class="vdbr">Devocionar\u00EDo'+(p.name?' \u00B7 '+p.name:'')+'</div></div><div><div class="vdate">'+fd(v.date)+'</div><div class="vwdd">'+wH+'</div></div></div><div class="vsec"><div class="vst">Palavras</div><div class="vwg"><div><div class="vwl">Novas</div>'+wI(v.wordsNew)+'</div><div><div class="vwl">Repetidas</div>'+wI(v.wordsRep)+'</div></div></div>'+vs('Resumo do Texto','O que o texto est\u00E1 dizendo?',tB(v.resumo))+vs('Li\u00E7\u00F5es Preciosas','Que li\u00E7\u00F5es posso extrair?',tB(v.licoes))+vs('Motivos de Ora\u00E7\u00E3o','No que preciso pedir ajuda ao Senhor?',tB(v.oracao))+vs('Anota\u00E7\u00F5es Gerais','',tB(v.anotacoes));
+}
+function editV(){go('form',vid);}
 
-  const container = document.getElementById('card-list');
-  if (!sorted.length) {
-    container.innerHTML = `<div class="empty-state">
-      <div class="empty-icon">
-        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="1.5"><path d="M4 19.5A2.5 2.5 0 016.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z"/></svg>
-      </div>
-      <h3>Nenhum devocional ainda</h3>
-      <p>Comece registrando o devocional de hoje.</p>
-      <button class="btn btn-primary" onclick="showScreen('form',null)">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-        Criar meu primeiro devocional
-      </button>
-    </div>`;
-    return;
-  }
+function bST(v){
+  const wn=(v.wordsNew||[]).filter(w=>w).join(', ')||'-';
+  const wr=(v.wordsRep||[]).filter(w=>w).join(', ')||'-';
+  const p=ldP();
+  return 'DEVOCIONAR\u00CDRIO'+(p.name?'\nAutor: '+p.name:'')+'\n'+'='.repeat(36)+'\n'+(v.bible||'-')+' - '+fd(v.date)+'\n\nPALAVRAS\nNovas: '+wn+'\nRepetidas: '+wr+'\n\nRESUMO\n'+(v.resumo||'-')+'\n\nLI\u00C7\u00D5ES PRECIOSAS\n'+(v.licoes||'-')+'\n\nMOTIVOS DE ORA\u00C7\u00C3O\n'+(v.oracao||'-')+'\n\nANOTA\u00C7\u00D5ES\n'+(v.anotacoes||'-')+'\n'+'='.repeat(36)+'\nDevocioni\u00E1rio - Reobote Apps';
+}
+function openShr(){oShrId(vid);}
+function oShrId(id){const v=ldA().find(d=>d.id===id);if(!v)return;document.getElementById('stxt').textContent=bST(v);document.getElementById('m-shr').classList.add('on');}
+function cpyShr(){navigator.clipboard.writeText(document.getElementById('stxt').textContent).then(()=>{toast('Texto copiado!');closeM('m-shr');}).catch(()=>toast('N\u00E3o foi poss\u00EDvel copiar.'));}
+function shrWA(){window.open('https://wa.me/?text='+encodeURIComponent(document.getElementById('stxt').textContent),'_blank');}
+function shrApp(){const u=window.location.href.split('?')[0];window.open('https://wa.me/?text='+encodeURIComponent('Ol\u00E1! Uso o *Devocioni\u00E1rio* para registrar meus devocionais di\u00E1rios. Acesse: '+u+' - Reobote Apps'),'_blank');}
 
-  container.innerHTML = sorted.map(dev => `
-    <div class="dev-card">
-      <div class="dev-card-top" onclick="showScreen('view','${dev.id}')">
-        <div class="dev-card-accent"></div>
-        <div class="dev-card-body">
-          <div class="dev-card-head">
-            <div class="dev-card-bible">${dev.bible || '(Sem texto bíblico)'}${dev.draft ? '<span class="draft-tag">rascunho</span>' : ''}</div>
-            <div class="dev-card-date">${fmtDate(dev.date)}</div>
-          </div>
-          <div class="dev-card-preview">${dev.resumo || dev.licoes || dev.oracao || 'Nenhum conteúdo registrado ainda.'}</div>
-        </div>
-      </div>
-      <div class="dev-card-footer" onclick="event.stopPropagation()">
-        <button class="btn btn-ghost btn-sm" onclick="showScreen('view','${dev.id}')">
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
-          Ver
-        </button>
-        <button class="btn btn-ghost btn-sm" onclick="showScreen('form','${dev.id}')">
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
-          Editar
-        </button>
-        <button class="btn btn-ghost btn-sm" onclick="openShareById('${dev.id}')">
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
-          Compartilhar
-        </button>
-        <button class="btn btn-danger btn-sm" onclick="openDelete('${dev.id}')">
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 011-1h4a1 1 0 011 1v2"/></svg>
-          Excluir
-        </button>
-      </div>
-    </div>
-  `).join('');
+function expPDF(){
+  const v=ldA().find(d=>d.id===vid);if(!v)return;
+  if(typeof window.jspdf==='undefined'){window.print();return;}
+  const{jsPDF}=window.jspdf;
+  const doc=new jsPDF({orientation:'p',unit:'mm',format:'a4'});
+  const mL=18,pW=210,lH=7;let y=mL;
+  const aT=(tx,sz=11,st='normal',ind=0)=>{doc.setFontSize(sz);doc.setFont('helvetica',st);const ls=doc.splitTextToSize(String(tx||''),pW-mL*2-ind);ls.forEach(l=>{if(y>278){doc.addPage();y=mL;}doc.text(l,mL+ind,y);y+=lH*(sz/11);});};
+  const sep=()=>{y+=3;doc.setDrawColor(184,151,90);doc.setLineWidth(.3);doc.line(mL,y,pW-mL,y);y+=5;};
+  const sT=t=>{y+=4;doc.setFillColor(44,40,32);doc.roundedRect(mL,y-5,pW-mL*2,9,1,1,'F');doc.setTextColor(212,180,131);doc.setFontSize(9);doc.setFont('helvetica','bold');doc.text(t.toUpperCase(),mL+4,y);y+=5;doc.setTextColor(0,0,0);};
+  const p=ldP();
+  doc.setFillColor(22,20,15);doc.rect(0,0,210,32,'F');
+  doc.setTextColor(212,180,131);doc.setFontSize(20);doc.setFont('helvetica','bold');doc.text('DEVOCIONAR\u00CDRIO',105,13,{align:'center'});
+  doc.setFontSize(8);doc.setFont('helvetica','normal');doc.setTextColor(184,151,90);doc.text('Aprimorando o relacionamento com Deus pela pr\u00E1tica devocional',105,21,{align:'center'});
+  if(p.name){doc.setTextColor(160,140,110);doc.text(p.name,105,27,{align:'center'});}
+  y=40;doc.setTextColor(0,0,0);
+  aT('Texto B\u00EDblico: '+(v.bible||'-'),14,'bold');aT('Data: '+fd(v.date),9);sep();
+  sT('Palavras');aT('Novas: '+((v.wordsNew||[]).filter(w=>w).join(', ')||'-'),10,'normal',4);aT('Repetidas: '+((v.wordsRep||[]).filter(w=>w).join(', ')||'-'),10,'normal',4);y+=2;
+  sT('Resumo do Texto');aT(v.resumo||'N\u00E3o preenchido.',10,'italic',4);y+=2;
+  sT('Li\u00E7\u00F5es Preciosas');aT(v.licoes||'N\u00E3o preenchido.',10,'italic',4);y+=2;
+  sT('Motivos de Ora\u00E7\u00E3o');aT(v.oracao||'N\u00E3o preenchido.',10,'italic',4);y+=2;
+  sT('Anota\u00E7\u00F5es Gerais');aT(v.anotacoes||'N\u00E3o preenchido.',10,'italic',4);
+  doc.setFontSize(7);doc.setFont('helvetica','italic');doc.setTextColor(150,140,120);doc.text('Desenvolvido por Reobote Apps',105,290,{align:'center'});
+  doc.save('devocional_'+(v.date||'sem-data')+'.pdf');
+  toast('PDF exportado!');
 }
 
-/* ─────────── FORM ─────────── */
-function buildWords() {
-  ['words-new','words-rep'].forEach(id => {
-    const el = document.getElementById(id);
-    el.innerHTML = '';
-    for (let i=0;i<4;i++) {
-      el.innerHTML += `<div class="word-row">
-        <div class="word-dot"></div>
-        <input class="word-input" type="text" data-col="${id}" data-i="${i}" oninput="updateProgress()"/>
-      </div>`;
-    }
+function oDel(id){did=id;document.getElementById('m-del').classList.add('on');}
+function confDel(){if(!did)return;svA(ldA().filter(d=>d.id!==did));did=null;closeM('m-del');toast('Exclu\u00EDdo.');rHome();}
+function closeM(id){document.getElementById(id).classList.remove('on');}
+document.querySelectorAll('.mov').forEach(o=>o.addEventListener('click',e=>{if(e.target===o)o.classList.remove('on');}));
+
+let tT;
+function toast(m){const t=document.getElementById('tst');t.textContent=m;t.classList.add('on');clearTimeout(tT);tT=setTimeout(()=>t.classList.remove('on'),3000);}
+
+function handleAv(input,src){
+  const file=input.files[0];if(!file)return;
+  const r=new FileReader();
+  r.onload=e=>{
+    const s=e.target.result;
+    document.getElementById('wav').innerHTML='<img src="'+s+'" style="width:100%;height:100%;object-fit:cover"/>';
+    document.getElementById('hav').innerHTML='<img src="'+s+'" style="width:100%;height:100%;object-fit:cover;border-radius:50%"/>';
+    if(src==='profile'){document.getElementById('pfimg').src=s;document.getElementById('pfimg').style.display='block';document.getElementById('pfph').style.display='none';}
+    const p=ldP();p.avatar=s;svP(p);toast('Foto atualizada!');
+  };
+  r.readAsDataURL(file);
+}
+function liveN(){const n=document.getElementById('pfname').value.trim();document.getElementById('hname').textContent=n||'Meu Perfil';}
+
+function sPf(){
+  const p=ldP();
+  document.getElementById('pfname').value=p.name||'';
+  if(p.avatar){document.getElementById('pfimg').src=p.avatar;document.getElementById('pfimg').style.display='block';document.getElementById('pfph').style.display='none';}
+  if(p.fbk)document.getElementById('fbk').value=p.fbk;
+  if(p.fbu)document.getElementById('fbu').value=p.fbu;
+  if(p.sbu)document.getElementById('sbu').value=p.sbu;
+  if(p.sbk)document.getElementById('sbk').value=p.sbk;
+  selC(p.cloud||'none',false);
+  setTh(localStorage.getItem('dth')||'light');
+}
+function savePf(){
+  const p={name:document.getElementById('pfname').value.trim(),avatar:document.getElementById('pfimg').src||'',cloud:sc,fbk:document.getElementById('fbk').value.trim(),fbu:document.getElementById('fbu').value.trim(),sbu:document.getElementById('sbu').value.trim(),sbk:document.getElementById('sbk').value.trim()};
+  svP(p);
+  document.getElementById('hname').textContent=p.name||'Meu Perfil';
+  if(p.avatar)document.getElementById('hav').innerHTML='<img src="'+p.avatar+'" style="width:100%;height:100%;object-fit:cover;border-radius:50%"/>';
+  toast('Perfil salvo!');
+}
+function selC(id){
+  sc=id;
+  ['none','firebase','supabase'].forEach(c=>{
+    document.getElementById('co-'+c).classList.toggle('sel',c===id);
+    const m={none:'',firebase:'fb',supabase:'sb'}[c];
+    if(m){const cf=document.getElementById('cfg'+m);if(cf)cf.classList.toggle('on',c===id);}
   });
 }
-
-function setupForm(id) {
-  currentEditId = id || null;
-  document.getElementById('form-title').textContent = id ? 'Editar Devocional' : 'Novo Devocional';
-  buildWords();
-
-  const today = new Date().toISOString().slice(0,10);
-
-  if (id) {
-    const dev = loadAll().find(d => d.id === id);
-    if (dev) {
-      document.getElementById('f-bible').value = dev.bible || '';
-      document.getElementById('f-date').value = dev.date || today;
-      document.getElementById('f-resumo').value = dev.resumo || '';
-      document.getElementById('f-licoes').value = dev.licoes || '';
-      document.getElementById('f-oracao').value = dev.oracao || '';
-      document.getElementById('f-anotacoes').value = dev.anotacoes || '';
-      const wn = document.querySelectorAll('[data-col="words-new"]');
-      const wr = document.querySelectorAll('[data-col="words-rep"]');
-      (dev.wordsNew||[]).forEach((w,i) => { if(wn[i]) wn[i].value=w; });
-      (dev.wordsRep||[]).forEach((w,i) => { if(wr[i]) wr[i].value=w; });
-    }
-  } else {
-    document.getElementById('f-bible').value = '';
-    document.getElementById('f-date').value = today;
-    ['f-resumo','f-licoes','f-oracao','f-anotacoes'].forEach(id => document.getElementById(id).value = '');
-  }
-  updateWeekdays();
-  updateProgress();
-  startAutosave();
+function tstFB(){
+  const key=document.getElementById('fbk').value.trim(),url=document.getElementById('fbu').value.trim(),st=document.getElementById('fbst');
+  st.style.display='block';
+  if(!key||!url){st.className='cst err';st.textContent='Preencha os campos.';return;}
+  st.className='cst';st.textContent='Testando...';
+  fetch(url+'.json?auth='+key).then(r=>{st.className='cst '+(r.ok?'ok':'err');st.textContent=r.ok?'Conexao bem-sucedida!':'Verifique as credenciais.';}).catch(()=>{st.className='cst err';st.textContent='Erro de rede.';});
+}
+function tstSB(){
+  const url=document.getElementById('sbu').value.trim(),key=document.getElementById('sbk').value.trim(),st=document.getElementById('sbst');
+  st.style.display='block';
+  if(!url||!key){st.className='cst err';st.textContent='Preencha os campos.';return;}
+  st.className='cst';st.textContent='Testando...';
+  fetch(url+'/rest/v1/',{headers:{'apikey':key,'Authorization':'Bearer '+key}}).then(r=>{const ok=r.ok||r.status===200;st.className='cst '+(ok?'ok':'err');st.textContent=ok?'Conexao bem-sucedida!':'Verifique URL e chave.';}).catch(()=>{st.className='cst err';st.textContent='Erro de rede.';});
+}
+function expJSON(){
+  const data={devocionais:ldA(),profile:ldP(),exportedAt:new Date().toISOString()};
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob([JSON.stringify(data,null,2)],{type:'application/json'}));
+  a.download='devocionario_'+new Date().toISOString().slice(0,10)+'.json';
+  a.click();toast('Backup exportado!');
 }
 
-function updateWeekdays() {
-  const val = document.getElementById('f-date').value;
-  document.querySelectorAll('#wd-row .wd-dot').forEach(d => d.classList.remove('active'));
-  const day = val ? new Date(val+'T00:00').getDay() : new Date().getDay();
-  const dot = document.querySelector(`#wd-row .wd-dot[data-d="${day}"]`);
-  if (dot) dot.classList.add('active');
-}
-
-function getFormData(draft=false) {
-  const wn = [...document.querySelectorAll('[data-col="words-new"]')].map(i=>i.value.trim());
-  const wr = [...document.querySelectorAll('[data-col="words-rep"]')].map(i=>i.value.trim());
-  return {
-    id: currentEditId || genId(),
-    bible: document.getElementById('f-bible').value.trim(),
-    date: document.getElementById('f-date').value,
-    wordsNew: wn, wordsRep: wr,
-    resumo: document.getElementById('f-resumo').value.trim(),
-    licoes: document.getElementById('f-licoes').value.trim(),
-    oracao: document.getElementById('f-oracao').value.trim(),
-    anotacoes: document.getElementById('f-anotacoes').value.trim(),
-    draft,
-    updatedAt: new Date().toISOString()
-  };
-}
-
-function persist(data) {
-  const list = loadAll();
-  const idx = list.findIndex(d => d.id === data.id);
-  if (idx >= 0) list[idx] = data; else list.push(data);
-  saveAll(list);
-  currentEditId = data.id;
-}
-
-function saveDraft() {
-  const data = getFormData(true);
-  persist(data);
-  showToast('Rascunho salvo');
-  flashAutosave('Rascunho salvo');
-}
-
-function saveDevotional() {
-  const data = getFormData(false);
-  if (!data.bible && !data.resumo) { showToast('Preencha ao menos o texto bíblico ou o resumo.'); return; }
-  persist(data);
-  showToast('Devocional salvo! 🙏');
-  showScreen('home');
-}
-
-function startAutosave() {
-  clearInterval(autosaveTimer);
-  autosaveTimer = setInterval(() => {
-    persist(getFormData(true));
-    flashAutosave('Salvo automaticamente');
-  }, 30000);
-}
-
-function flashAutosave(msg) {
-  const el = document.getElementById('autosave-msg');
-  el.textContent = msg;
-  el.style.opacity = '1';
-  setTimeout(() => { el.style.opacity = '0'; }, 3000);
-}
-
-function updateProgress() {
-  const fields = ['f-bible','f-date','f-resumo','f-licoes','f-oracao','f-anotacoes'];
-  const filled = fields.filter(f => document.getElementById(f).value.trim()).length;
-  document.getElementById('progress-fill').style.width = Math.round(filled/fields.length*100) + '%';
-}
-
-/* ─────────── VIEW ─────────── */
-function setupView(id) {
-  currentViewId = id;
-  const dev = loadAll().find(d => d.id === id);
-  if (!dev) { showScreen('home'); return; }
-
-  const days = ['D','S','T','Q','Q','S','S'];
-  const dayIdx = dev.date ? new Date(dev.date+'T00:00').getDay() : -1;
-  const wdHtml = days.map((d,i) =>
-    `<div class="view-wd ${i===dayIdx?'active':''}">${d}</div>`
-  ).join('');
-
-  const wordHtml = (arr) => (arr||[]).filter(w=>w).map(w =>
-    `<div class="view-word-item"><div class="word-dot" style="width:6px;height:6px;border-radius:50%;background:var(--gold);flex-shrink:0"></div>${w}</div>`
-  ).join('') || `<span class="view-empty">—</span>`;
-
-  const txtBlock = (txt) => txt
-    ? `<div class="view-text">${txt}</div>`
-    : `<div class="view-empty">Não preenchido.</div>`;
-
-  const sec = (title, guide, body) => `
-    <div class="view-section">
-      <div class="view-sec-title">${title}<span class="view-sec-guide">${guide}</span></div>
-      ${body}
-    </div>`;
-
-  const prof = loadProfile();
-  const userName = prof.name ? `<div style="font-size:.78rem;font-style:italic;color:var(--muted);margin-top:3px;">${prof.name}</div>` : '';
-
-  document.getElementById('print-area').innerHTML = `
-    <div class="view-doc-header">
-      <div>
-        <div class="view-bible-ref">📖 ${dev.bible || '—'}</div>
-        <div class="view-app-brand">Devocionário</div>
-        ${userName}
-      </div>
-      <div class="view-date-col">
-        <div class="view-date-str">${fmtDate(dev.date)}</div>
-        <div class="view-wd-dots">${wdHtml}</div>
-      </div>
-    </div>
-
-    <div class="view-section">
-      <div class="view-sec-title">Palavras</div>
-      <div class="view-words-grid">
-        <div>
-          <div class="view-words-col-label">✓ Novas</div>
-          ${wordHtml(dev.wordsNew)}
-        </div>
-        <div>
-          <div class="view-words-col-label">✓ Repetidas</div>
-          ${wordHtml(dev.wordsRep)}
-        </div>
-      </div>
-    </div>
-
-    ${sec('Resumo do Texto','O que o texto de maneira geral está dizendo?', txtBlock(dev.resumo))}
-    ${sec('Lições Preciosas','Que lições posso extrair para a minha vida?', txtBlock(dev.licoes))}
-    ${sec('Motivos de Oração','No que preciso pedir a ajuda do Senhor?', txtBlock(dev.oracao))}
-    ${sec('Anotações Gerais','', txtBlock(dev.anotacoes))}
-  `;
-}
-
-function editCurrentView() { showScreen('form', currentViewId); }
-
-/* ─────────── SHARE ─────────── */
-function buildShareText(dev) {
-  const wn = (dev.wordsNew||[]).filter(w=>w).join(', ') || '—';
-  const wr = (dev.wordsRep||[]).filter(w=>w).join(', ') || '—';
-  const prof = loadProfile();
-  const nameLine = prof.name ? `\nAutor: ${prof.name}` : '';
-  return `DEVOCIONÁRIO${nameLine}
-${'═'.repeat(38)}
-
-📖 Texto Bíblico: ${dev.bible||'—'}
-📅 Data: ${fmtDate(dev.date)}
-
-${'─'.repeat(38)}
-PALAVRAS
-Novas: ${wn}
-Repetidas: ${wr}
-
-${'─'.repeat(38)}
-RESUMO DO TEXTO
-${dev.resumo||'—'}
-
-${'─'.repeat(38)}
-LIÇÕES PRECIOSAS
-${dev.licoes||'—'}
-
-${'─'.repeat(38)}
-MOTIVOS DE ORAÇÃO
-${dev.oracao||'—'}
-
-${'─'.repeat(38)}
-ANOTAÇÕES GERAIS
-${dev.anotacoes||'—'}
-
-${'═'.repeat(38)}
-Devocionário · Desenvolvido por Reobote Apps`;
-}
-
-function openShareModal() { openShareById(currentViewId); }
-function openShareById(id) {
-  const dev = loadAll().find(d => d.id === id);
-  if (!dev) return;
-  document.getElementById('share-text').textContent = buildShareText(dev);
-  document.getElementById('modal-share').classList.add('open');
-}
-function copyShare() {
-  navigator.clipboard.writeText(document.getElementById('share-text').textContent)
-    .then(() => { showToast('Texto copiado! 📋'); closeModal('modal-share'); })
-    .catch(() => showToast('Não foi possível copiar automaticamente.'));
-}
-
-/* ─────────── PDF EXPORT ─────────── */
-function exportPDF() {
-  const dev = loadAll().find(d => d.id === currentViewId);
-  if (!dev) return;
-  if (typeof jspdf === 'undefined' && typeof window.jspdf === 'undefined') {
-    // Fallback: print
-    showToast('Abrindo impressão...');
-    window.print();
-    return;
-  }
-  const { jsPDF } = window.jspdf;
-  const doc = new jsPDF({ orientation:'p', unit:'mm', format:'a4' });
-  const margin = 20;
-  const pageW = 210;
-  const lineH = 7;
-  let y = margin;
-
-  const addLine = (text, size=11, style='normal', indent=0) => {
-    doc.setFontSize(size);
-    doc.setFont('helvetica', style);
-    const lines = doc.splitTextToSize(text, pageW - margin*2 - indent);
-    lines.forEach(ln => {
-      if (y > 270) { doc.addPage(); y = margin; }
-      doc.text(ln, margin + indent, y);
-      y += lineH * (size/11);
-    });
-  };
-
-  const separator = () => {
-    y += 2;
-    doc.setDrawColor(184,151,90);
-    doc.setLineWidth(0.3);
-    doc.line(margin, y, pageW-margin, y);
-    y += 5;
-  };
-
-  const sectionTitle = (t) => {
-    y += 3;
-    doc.setFillColor(44,40,32);
-    doc.roundedRect(margin, y-5, pageW-margin*2, 9, 1, 1, 'F');
-    doc.setTextColor(212,180,131);
-    addLine(t.toUpperCase(), 9, 'bold');
-    doc.setTextColor(0,0,0);
-    y += 2;
-  };
-
-  const prof = loadProfile();
-
-  // Header
-  doc.setFillColor(22,20,15);
-  doc.rect(0, 0, 210, 30, 'F');
-  doc.setTextColor(200,169,110);
-  doc.setFontSize(18); doc.setFont('helvetica','bold');
-  doc.text('DEVOCIONÁRIO', 105, 14, {align:'center'});
-  doc.setFontSize(8); doc.setFont('helvetica','normal');
-  doc.setTextColor(180,150,90);
-  doc.text('Aprimorando o relacionamento com Deus pela prática devocional', 105, 21, {align:'center'});
-  doc.setTextColor(0,0,0);
-  y = 38;
-
-  addLine(`Texto Bíblico: ${dev.bible||'—'}`, 13, 'bold');
-  if (prof.name) addLine(`Autor: ${prof.name}`, 9, 'italic');
-  addLine(`Data: ${fmtDate(dev.date)}`, 9, 'normal');
-  separator();
-
-  sectionTitle('Palavras');
-  const wn = (dev.wordsNew||[]).filter(w=>w).join(', ')||'—';
-  const wr = (dev.wordsRep||[]).filter(w=>w).join(', ')||'—';
-  addLine(`Novas: ${wn}`, 10, 'normal', 4);
-  addLine(`Repetidas: ${wr}`, 10, 'normal', 4);
-  y+=2;
-
-  sectionTitle('Resumo do Texto');
-  addLine(dev.resumo||'Não preenchido.', 10, 'italic', 4);
-  y+=2;
-
-  sectionTitle('Lições Preciosas');
-  addLine(dev.licoes||'Não preenchido.', 10, 'italic', 4);
-  y+=2;
-
-  sectionTitle('Motivos de Oração');
-  addLine(dev.oracao||'Não preenchido.', 10, 'italic', 4);
-  y+=2;
-
-  sectionTitle('Anotações Gerais');
-  addLine(dev.anotacoes||'Não preenchido.', 10, 'italic', 4);
-
-  // Footer
-  doc.setFontSize(7); doc.setFont('helvetica','italic');
-  doc.setTextColor(150,140,120);
-  doc.text('Desenvolvido por Reobote Apps', 105, 290, {align:'center'});
-
-  const filename = `devocional_${dev.date||'sem-data'}_${(dev.bible||'').replace(/\s/g,'-')||'registro'}.pdf`;
-  doc.save(filename);
-  showToast('PDF exportado com sucesso!');
-}
-
-/* ─────────── DELETE ─────────── */
-function openDelete(id) {
-  deleteTargetId = id;
-  document.getElementById('modal-delete').classList.add('open');
-}
-function confirmDelete() {
-  if (!deleteTargetId) return;
-  saveAll(loadAll().filter(d => d.id !== deleteTargetId));
-  deleteTargetId = null;
-  closeModal('modal-delete');
-  showToast('Devocional excluído.');
-  renderHome();
-}
-
-/* ─────────── MODALS ─────────── */
-function closeModal(id) { document.getElementById(id).classList.remove('open'); }
-document.querySelectorAll('.modal-overlay').forEach(o => {
-  o.addEventListener('click', e => { if(e.target===o) o.classList.remove('open'); });
-});
-
-/* ─────────── TOAST ─────────── */
-let toastTimer;
-function showToast(msg) {
-  const t = document.getElementById('toast');
-  t.textContent = msg;
-  t.classList.add('show');
-  clearTimeout(toastTimer);
-  toastTimer = setTimeout(() => t.classList.remove('show'), 3000);
-}
-
-/* ─────────── PROFILE ─────────── */
-let selectedCloud = 'none';
-
-function setupProfile() {
-  const p = loadProfile();
-  document.getElementById('profile-name').value = p.name || '';
-  if (p.avatar) {
-    document.getElementById('profile-avatar-img').src = p.avatar;
-    document.getElementById('profile-avatar-img').style.display = 'block';
-    document.getElementById('profile-avatar-placeholder').style.display = 'none';
-  }
-  if (p.fbKey) document.getElementById('fb-apikey').value = p.fbKey;
-  if (p.fbUrl) document.getElementById('fb-url').value = p.fbUrl;
-  if (p.sbUrl) document.getElementById('sb-url').value = p.sbUrl;
-  if (p.sbKey) document.getElementById('sb-key').value = p.sbKey;
-  selectCloud(p.cloud || 'none', false);
-}
-
-function handleAvatarUpload(input) {
-  const file = input.files[0];
-  if (!file) return;
-  const reader = new FileReader();
-  reader.onload = (e) => {
-    const src = e.target.result;
-    document.getElementById('profile-avatar-img').src = src;
-    document.getElementById('profile-avatar-img').style.display = 'block';
-    document.getElementById('profile-avatar-placeholder').style.display = 'none';
-    updateHeaderAvatar(src);
-  };
-  reader.readAsDataURL(file);
-}
-
-function updateHeaderUser() {
-  const name = document.getElementById('profile-name').value.trim();
-  document.getElementById('header-username').textContent = name || 'Meu Perfil';
-}
-
-function updateHeaderAvatar(src) {
-  const ha = document.getElementById('header-avatar');
-  ha.innerHTML = `<img src="${src}" style="width:100%;height:100%;object-fit:cover;border-radius:50%"/>`;
-}
-
-function saveProfile() {
-  saveProfile_();
-  const name = document.getElementById('profile-name').value.trim();
-  document.getElementById('header-username').textContent = name || 'Meu Perfil';
-  const imgSrc = document.getElementById('profile-avatar-img').src;
-  if (imgSrc && imgSrc !== window.location.href) updateHeaderAvatar(imgSrc);
-  showToast('Perfil salvo!');
-}
-
-function selectCloud(id, save=true) {
-  selectedCloud = id;
-  ['none','firebase','supabase'].forEach(c => {
-    document.getElementById('cloud-'+c).classList.toggle('selected', c===id);
-    const cfg = document.getElementById('cfg-'+c);
-    if (cfg) cfg.classList.toggle('open', c===id && id!=='none');
-  });
-}
-
-function testFirebase() {
-  const key = document.getElementById('fb-apikey').value.trim();
-  const url = document.getElementById('fb-url').value.trim();
-  const st = document.getElementById('fb-status');
-  st.style.display = 'block';
-  if (!key || !url) { st.className='cloud-status err'; st.textContent='Preencha os campos acima.'; return; }
-  st.className='cloud-status'; st.textContent='Testando conexão...';
-  fetch(`${url}.json?auth=${key}`)
-    .then(r => {
-      if(r.ok) { st.className='cloud-status ok'; st.textContent='✓ Conexão bem-sucedida com Firebase!'; }
-      else { st.className='cloud-status err'; st.textContent='✗ Falha na conexão. Verifique suas credenciais.'; }
-    })
-    .catch(() => { st.className='cloud-status err'; st.textContent='✗ Erro de rede. Verifique a URL.'; });
-}
-
-function testSupabase() {
-  const url = document.getElementById('sb-url').value.trim();
-  const key = document.getElementById('sb-key').value.trim();
-  const st = document.getElementById('sb-status');
-  st.style.display = 'block';
-  if (!url || !key) { st.className='cloud-status err'; st.textContent='Preencha os campos acima.'; return; }
-  st.className='cloud-status'; st.textContent='Testando conexão...';
-  fetch(`${url}/rest/v1/`, { headers: { 'apikey': key, 'Authorization': `Bearer ${key}` } })
-    .then(r => {
-      if(r.ok||r.status===200) { st.className='cloud-status ok'; st.textContent='✓ Conexão bem-sucedida com Supabase!'; }
-      else { st.className='cloud-status err'; st.textContent='✗ Falha. Verifique URL e chave.'; }
-    })
-    .catch(() => { st.className='cloud-status err'; st.textContent='✗ Erro de rede. Verifique a URL.'; });
-}
-
-/* ─────────── EXPORT JSON ─────────── */
-function exportJSON() {
-  const data = { devocionais: loadAll(), profile: loadProfile(), exportedAt: new Date().toISOString() };
-  const blob = new Blob([JSON.stringify(data, null, 2)], { type:'application/json' });
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(blob);
-  a.download = `devocionario_backup_${new Date().toISOString().slice(0,10)}.json`;
-  a.click();
-  showToast('Backup exportado!');
-}
-
-/* ─────────── INIT ─────────── */
-(function init() {
-  const p = loadProfile();
-  if (p.name) { document.getElementById('header-username').textContent = p.name; }
-  if (p.avatar) { updateHeaderAvatar(p.avatar); }
-  updateWeekdays();
-  renderHome();
+(function(){
+  const th=localStorage.getItem('dth')||'light';setTh(th);
+  const p=ldP();
+  if(p.name)document.getElementById('hname').textContent=p.name;
+  if(p.avatar){document.getElementById('hav').innerHTML='<img src="'+p.avatar+'" style="width:100%;height:100%;object-fit:cover;border-radius:50%"/>';document.getElementById('wav').innerHTML='<img src="'+p.avatar+'" style="width:100%;height:100%;object-fit:cover"/>';}
+  upWD();rHome();
 })();
 </script>
 </body>
